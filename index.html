@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+<meta charset="UTF-8">
+<!-- Zákaz zoomu na mobilu -->
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<title>Hra</title>
+<style>
+  html, body {
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;            /* žádné posouvání */
+    background: #111;
+    touch-action: none;          /* prohlížeč neřeší gesta (scroll, pinch-zoom) */
+    overscroll-behavior: none;   /* žádné „pull to refresh“ */
+    user-select: none;
+    -webkit-user-select: none;
+    -webkit-touch-callout: none;
+    -webkit-tap-highlight-color: transparent;
+  }
+  body {
+    position: fixed;             /* iOS: zabrání posunu stránky */
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  canvas {
+    display: block;
+    image-rendering: pixelated;
+  }
+  /* Virtuální joystick – vykreslený přes DOM, aby nezávisel na měřítku canvasu */
+  .joy {
+    position: fixed;
+    border-radius: 50%;
+    pointer-events: none;
+    display: none;
+    transform: translate(-50%, -50%);
+  }
+  #joyBase {
+    background: rgba(255, 255, 255, 0.12);
+    border: 2px solid rgba(255, 255, 255, 0.35);
+  }
+  #joyKnob {
+    background: rgba(255, 255, 255, 0.45);
+  }
+  /* Mobil na výšku: hra se hraje na šířku – výzva k otočení */
+  #otoc {
+    display: none;
+    position: fixed; inset: 0;
+    background: #1f2a44; color: #fff;
+    font: bold 22px sans-serif; text-align: center;
+    flex-direction: column; align-items: center; justify-content: center; gap: 16px;
+    z-index: 10;
+  }
+  #otoc .ikona { font-size: 64px; animation: otoc 1.6s ease-in-out infinite; }
+  @keyframes otoc { 0%, 30% { transform: rotate(0deg); } 60%, 100% { transform: rotate(90deg); } }
+  @media (orientation: portrait) and (pointer: coarse) {
+    #otoc { display: flex; }
+  }
+  /* Na úvodní a závěrečné obrazovce joystick neukazujeme */
+  body.menu .joy {
+    visibility: hidden;
+  }
+</style>
+</head>
+<body>
+<canvas id="game"></canvas>
+<div id="joyBase" class="joy"></div>
+<div id="joyKnob" class="joy"></div>
+<div id="otoc"><div class="ikona">📱</div><div>Otoč telefon na šířku</div><div style="font: 15px sans-serif; opacity: 0.75">Hra se hraje na šířku.</div></div>
+
+<!-- kód hry je ve složce js/, načítá se v tomto pořadí -->
+<script src="js/01_nastaveni.js"></script>
+<script src="js/02_mistnosti.js"></script>
+<script src="js/03_postavy.js"></script>
+<script src="js/04_ukoly.js"></script>
+<script src="js/05_stav_a_ovladani.js"></script>
+<script src="js/06_logika.js"></script>
+<script src="js/07_kresleni.js"></script>
+<script src="js/08_grafika_mistnosti.js"></script>
+<script src="js/09_ukladani_a_zvuk.js"></script>
+<script src="js/10_obrazovky.js"></script>
+<script src="js/11_minihra_kos.js"></script>
+<script src="js/12_sachy.js"></script>
+<script src="js/13_katalog.js"></script>
+<script src="js/14_fotbalek.js"></script>
+<script src="js/16_gumy.js"></script>
+<script src="js/17_pribehy.js"></script>
+<script src="js/18_vrah.js"></script>
+<script src="js/19_laborky.js"></script>
+<script src="js/20_skola.js"></script>
+<script src="js/21_pivo.js"></script>
+<script src="js/22_struny.js"></script>
+<script src="js/15_hlavni.js"></script>
+</body>
+</html>
