@@ -61,6 +61,7 @@ js/23_tabak.js        quest Tabák pro Křiváčka (prohledat A113, sáčky = ry
 js/24_damien.js       studenti Damien, Robin, Michele a quest s hádankou na tabuli
 js/25_robin.js        miniquest HTML pro Robina (editor s náhledem, Jelínek radí za peníze)
 js/26_teplota.js      miniquest Teplota pro Láďu a výběr u školníka (kleště / teploměr)
+js/27_rozhovory.js    drobné rozhovory postav (Zita a Emma)
 js/15_hlavni.js       update/render podle obrazovky, herní smyčka, START (musí být poslední)
 obrazky/              hlavy 48 × 48 px: hrac.png, mala.png, krivacek.png, rauscher.png, holub.png, soumar.png, lencova.png, vesela.png, mraz.png …
 zvuky/                hudba: pozadí/ = hudba na pozadí (CONFIG.MUSIC_PLAYLIST), „Treplev.mp3“ (v C202 u Kluse), „fotbálek.mp3“ (u fotbálku), Mykyta/ = písničky od Mykyho
@@ -499,6 +500,8 @@ Další učitelé bez úkolu: Křiváček (kabinet2, hlava z `Křiváček oprava
    - Roman teplotu řekne česky správně (`stupne`: „je 1 stupeň“, „jsou 3 stupně“, „je 5 stupňů“, „jsou minus 2 stupně“, „je nula stupňů“). Teploměr se dá školníkovi vrátit kdykoli, i před tím, než to Roman řekne Láďovi (`returnThermo`, `teplota.has`). Když ho vrátí dřív, než změřil, musí si ho půjčit znovu.
    - **Školník** (`skolnikMain`): když má hráč rozdělané kleště (struny pro Málu – půjčit, nebo vrátit) a zároveň potřebuje teploměr, vybere si v nabídce. Když jen jedno, dostane to rovnou. Ověřené cesty: jen teploměr, jen kleště, obojí (výběr teploměru i kleští), vrácení kleští + teploměr, vrácení teploměru (před Láďou i po něm, i spolu s kleštěmi), nic.
    - Hlášky Telingerové, Ládové a Kučerové jsou od uživatele (matika a Metoděj, sloh v pondělí, Racek k maturitě).
+
+**Zita a Emma** před bufetem: když na jednu z nich Roman promluví, zahrají rozhovor – Zita si stěžuje na práci v kavárně, Emma odpovídá (`ZITA_EMMA` v `js/27_rozhovory.js`, pokaždé další z 6). Půjčení na párek pro Kubu má přednost.
 
 **Studenti** jsou v `TEACHERS` se `student: true` (stejná data jako učitelé).
 
