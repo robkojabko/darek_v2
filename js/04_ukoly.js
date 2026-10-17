@@ -26,11 +26,11 @@ const QUESTS = [
   // Chánova motorka – objeví se na parkovišti, až hráč utratí peníze, které si z peněženky nechal
   { id: 'motorka', title: 'Chánova motorka', teacher: 'chan', locked: (story) => !story.motorka,
     item: { name: 'kanystr s benzínem', room: 'kabinet4', at: { x: 0.8, y: 0.75 }, color: '#d32f2f', icon: 'kanystr' },
-    task: 'Najdi kanystr s benzínem (Kabinet 4)',
+    task: 'Najdi kanystr s benzínem (Kabinet Chána)',
     carryTask: 'Oprav motorku na parkovišti – pospojuj dráty a dolij benzín',
     texts: {
-      assign: 'Tak co, Romane – peníze z mý peněženky jsi utratil, co? Tak si to odpracuješ. Na parkovišti mi stojí motorka a nejede. Sežeň benzín – kanystr je v Kabinetu 4 – a pak ji oprav.',
-      waiting: 'Kanystr je v Kabinetu 4. Pak hurá k motorce na parkoviště.',
+      assign: 'Tak co, Romane – peníze z mý peněženky jsi utratil, co? Tak si to odpracuješ. Na parkovišti mi stojí motorka a nejede. Sežeň benzín – kanystr mám u sebe v kabinetu – a pak ji oprav.',
+      waiting: 'Kanystr mám u sebe v kabinetu. Pak hurá k motorce na parkoviště.',
     } },
   // Lili v C202 chce utéct Tomáši Klusovi; doběhne k Bečvářovi (17_pribehy.js)
   { id: 'klus', title: 'Útěk od Kluse', teacher: 'lili',

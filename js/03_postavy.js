@@ -142,7 +142,7 @@ const TEACHERS = {
       // od dveří doleva, dolů uličkou vlevo od aut, pod auty doprava a nahoru trávou za auty
       { room: 'parkoviste', path: [[700, 95], [200, 100], [200, 610], [396, 615], [396, 215]] },
     ],
-    texts: { idle: 'Co tady děláš? Žádné lumpárny, ať tě nevidím!' },
+    texts: { idle: 'Můj poslední dozor a pak tu nebudu dva měsíce, tak se snad nic nestane.' },
   },
   // Šmahel v A310 vpravo vedle katedry, Bečvář v kabinetu A312 před stolem; hlášky dodá autor
   smahel: {

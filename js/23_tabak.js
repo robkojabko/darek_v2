@@ -36,7 +36,7 @@ function tabak() {
 const tabakQuest = () => questById('tabak');
 function tabakHint() {
   const st = questStage(tabakQuest());
-  if (st === 'none') return 'Zajdi za: Křiváček (v kabinetu 2)';
+  if (st === 'none') return 'Zajdi za: Křiváček (v kabinetu Křiváčka)';
   if (st === 'assigned') return 'Najdi Křiváčkův tabák v A113 – prohledej to tam';
   if (st === 'carrying') return 'Dones tabák Křiváčkovi';
   return '';

@@ -46,7 +46,7 @@ const fmtTime = (t) => { const sec = Math.max(0, Math.ceil(t)); return `${Math.f
 
 function strunyHint() {
   const s = struny(), st = questStage(strunyQuest());
-  if (st === 'none') return 'Zajdi za: Mála (v kabinetě)';
+  if (st === 'none') return 'Zajdi za: Mála (v kabinetu Mály)';
   if (s.step === 'skolnik') return 'Půjč si kleště od školníka (ve skříňkách dole)';
   if (s.step === 'klestě') return s.cut ? `Rychle vrať kleště školníkovi (${fmtTime(s.t)})` : `Ustřihni struny z kytary v C202 (${fmtTime(s.t)})`;
   if (s.step === 'mala') return 'Dones struny Málovi';

@@ -108,18 +108,18 @@ function vrahHint() {
   const v = state.vrah;
   if (!v) return '';
   return {
-    binkova1: 'Zajdi za Binkovou do jejího kabinetu (Kabinet 5)',
+    binkova1: 'Zajdi za Binkovou do jejího kabinetu (Kabinet Binková a Kučerová)',
     stopy: `Najdi v C109 stopy (${v.clues.length}/3)`,
-    binkova2: 'Vrať se se stopami za Binkovou (Kabinet 5)',
-    logo: 'Nalep logo Slávie na Holubův kabinet (Kabinet 7), až se nedívá',
-    binkova3: 'Vrať se za Binkovou a Mišákem (Kabinet 5)',
-    krivacek: 'Zajdi za Křiváčkem (Kabinet 2) pro Lektvar Zelené Karmy',
+    binkova2: 'Vrať se se stopami za Binkovou (Kabinet Binková a Kučerová)',
+    logo: 'Nalep logo Slávie na Holubův kabinet (Kabinet Holuba), až se nedívá',
+    binkova3: 'Vrať se za Binkovou a Mišákem (Kabinet Binková a Kučerová)',
+    krivacek: 'Zajdi za Křiváčkem (Kabinet Křiváček) pro Lektvar Zelené Karmy',
     tequila: 'Sežeň jahodovou tequilu – má ji školník (ve skříňkách dole)',
     klice: 'Klíče od kotelny má uklízečka – najdi ji',
     mamKlice: 'Dones klíče od kotelny školníkovi (ve skříňkách dole)',
-    panenky: 'Dones Křiváčkovi tequilu a zahraj mu Dvě panenky (Kabinet 2)',
+    panenky: 'Dones Křiváčkovi tequilu a zahraj mu Dvě panenky (Kabinet Křiváček)',
     laborka: labHint(),
-    lektvar: 'Přines lektvar do kabinetu Binkové (Kabinet 5)',
+    lektvar: 'Přines lektvar do kabinetu Binkové (Kabinet Binková a Kučerová)',
     konec: 'Hotovo',
   }[v.stage];
 }
@@ -306,7 +306,7 @@ SPOTS.push({ rect: clueSpot, act: examineClue, hintDx: 0 });
 // Zamčené dveře do C109 (dokud hráč nemá klíč)
 function doorBlocked(door) {
   if (!vrahOn() || door.to !== VRAH.CRIME || state.vrah.stage !== 'binkova1') return false;
-  if (!state.toast) state.toast = { text: '🔒 C109 je zamčená. Klíč má Binková (Kabinet 5).', t: CONFIG.TOAST_TIME };
+  if (!state.toast) state.toast = { text: '🔒 C109 je zamčená. Klíč má Binková (Kabinet Binková a Kučerová).', t: CONFIG.TOAST_TIME };
   const p = state.player, back = { top: [0, 6], bottom: [0, -6], left: [6, 0], right: [-6, 0] }[door.side];
   p.x += back[0]; p.y += back[1];   // odstrčit od dveří, ať se to neopakuje každý snímek
   return true;
@@ -1042,7 +1042,7 @@ function newLab() {
 function labHint() {
   const l = state.lab;
   if (!l || !l.talked) return 'Jdi s Křiváčkem do laborky – on Lukáškovou zabaví';
-  if (l.done) return 'Zmiz z laborky a zajdi za Křiváčkem (Kabinet 2)';
+  if (l.done) return 'Zmiz z laborky a zajdi za Křiváčkem (Kabinet Křiváček)';
   if (!l.code) return `Otevři skříň – kód je „${LAB.CODE_TEXT}“ (protonová čísla najdeš v tabulce na zdi)`;
   if (l.pipette < 3) return `Namíchej látky pipetou u stolu (${l.pipette}/3)`;
   return 'Vrať lahvičky na poličku přesně, jak byly';

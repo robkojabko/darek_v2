@@ -72,7 +72,7 @@ function pivoHint() {
     kamery: `Rozbij kamery na Áčku v 1. patře (${p.cams.length}/3)`,
     parek: hasParek() ? 'Dones Kubovi párek v rohlíku' : 'Kup Kubovi párek v rohlíku (půjčí ti Emma nebo Zita)',
     lakani: 'Počkej venku před předsíní, až Kuba se Soumarem odejdou',
-    pc: 'Soumar je pryč – najdi recept v jeho počítači (Kabinet A215)',
+    pc: 'Soumar je pryč – najdi recept v jeho počítači (Kabinet Soumar)',
     poplach: 'Alarm! Soumar běží zpátky…',
     vyhozen: 'Soumar tě vyhodil – popros Kubu, ať ho odláká znovu',
     tisk: 'Vyzvedni recept z tiskárny (Předsíň kabinetů)',

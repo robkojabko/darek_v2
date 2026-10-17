@@ -94,6 +94,32 @@ Object.assign(ROOM_ART, {
 });
 
 // =====================================================================
+// NÁZVY KABINETŮ PODLE UČITELŮ A PATER BUDOVY A (uživatel: „jen přízemí, 1. patro a 2. patro“)
+// =====================================================================
+for (const [id, name, where] of [
+  ['kabinetA215', 'Kabinet Soumar', 'v kabinetu Soumara'],
+  ['kabinetA214', 'Kabinet Ládová', 'v kabinetu Ládové'],
+  ['kabinetA213', 'Kabinet Telingerová', 'v kabinetu Telingerové'],
+  ['kabinet3', 'Kabinet Lencová', 'v kabinetu Lencové'],
+  ['kabinet', 'Kabinet Mála', 'v kabinetu Mály'],
+  ['kabinet2', 'Kabinet Křiváček', 'v kabinetu Křiváčka'],
+  ['kabinet4', 'Kabinet Chána', 'v kabinetu Chána'],
+  ['kabinet5', 'Kabinet Binková a Kučerová', 'v kabinetu Binkové a Kučerové'],
+  ['kabinet7', 'Kabinet Holuba', 'v kabinetu Holuba'],
+  ['kabinet8', 'Kabinet Švecové', 'v kabinetu Švecové'],
+]) Object.assign(ROOMS[id], { name, where });
+// chodby budovy A: jeden název na patro (bez západní / východní chodby); hala, schodiště
+// a prosklená chodba si nechávají svůj název
+for (const [id, name, where, parts] of [
+  ['chodba', 'Přízemí', 'v přízemí', ['zapad', 'vychod', 'predSchody', 'hlavniTop', 'hlavni', 'vstup']],
+  ['patroA', '1. patro', 'v 1. patře', ['zapadP', 'vychodP', 'hlavniP']],
+  ['patroA2', '2. patro', 've 2. patře', ['zapadP2', 'vychodP2', 'hlavniP2']],
+]) {
+  Object.assign(ROOMS[id], { name, where });
+  for (const p of ROOMS[id].parts) if (parts.includes(p.id)) p.name = name;
+}
+
+// =====================================================================
 // TERKA A RAUSCHER – Terka chodí vedle Rauschera (companion) a spolu pomlouvají Holuba.
 // Když je hráč blízko, nad nimi se střídají bubliny; když s jedním z nich promluví,
 // zahrají mu celý rozhovor (pokaždé jiný).

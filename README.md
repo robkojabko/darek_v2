@@ -491,6 +491,9 @@ Další učitelé bez úkolu: Křiváček (kabinet2, hlava z `Křiváček oprava
 
 **Binková a Mišák** stojí v C109 vedle sebe u tabule. Když na jednoho z nich Roman promluví, zahrají rozhovor o testu s Gulliverovými cestami (`binkovaMisakTalk` v `20_skola.js`). Bubliny nad nimi nejsou, rozhovor je jen po rozkliknutí.
 
+**Názvy kabinetů a pater** (`20_skola.js`, nahoře): kabinety se jmenují podle učitelů – Kabinet Soumar (A215), Kabinet Ládová (A214), Kabinet Telingerová (A213), Kabinet Lencová (dřív Kabinet 3), Kabinet Mála, Kabinet Křiváček (2), Kabinet Chána (4), Kabinet Binková a Kučerová (5), Kabinet Holuba (7), Kabinet Švecové (8). Ládová, Telingerová a Kučerová zatím ve hře nejsou (fotky pošle uživatel). Chodby budovy A mají jeden název na patro: **Přízemí**, **1. patro**, **2. patro** (bez západní a východní chodby). Hala s pingpongem, prosklená chodba a schodiště mají svůj název dál.
+**Mráz** (dozor na parkovišti) říká: „Můj poslední dozor a pak tu nebudu dva měsíce, tak se snad nic nestane.“
+
 **Studenti** jsou v `TEACHERS` se `student: true` (stejná data jako učitelé).
 
 - **Kuba Vozábal** (`vozabal`) chodí po chodbách celé školy, do tříd nechodí. Jde po trase `route` tam a zpátky rychlostí 70 px/s, celé kolečko trvá asi 9 minut.

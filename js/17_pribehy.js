@@ -462,7 +462,7 @@ function motorkaAct() {
   const who = { name: '🏍️ Chánova motorka', color: '#c62828' };
   if (st === 'done') { storyDialog(who, 'Motorka je jako nová. Chán na ní jezdí s úsměvem.'); return; }
   if (st === 'none') { storyDialog(who, 'Tohle je Chánova motorka. Nejede. Zeptej se Chána, co s ní.'); return; }
-  if (st === 'assigned') { storyDialog(who, 'Dráty pod sedlem jsou vytržené a nádrž je prázdná. Nejdřív sežeň benzín – kanystr je v Kabinetu 4.'); return; }
+  if (st === 'assigned') { storyDialog(who, 'Dráty pod sedlem jsou vytržené a nádrž je prázdná. Nejdřív sežeň benzín – kanystr je v Kabinetu Chána.'); return; }
   startWires();
 }
 SPOTS.push({ rect: motorkaSpot, act: motorkaAct, hintDx: 0 });
