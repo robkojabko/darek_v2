@@ -59,6 +59,7 @@ js/21_pivo.js         quest Recept na pivo (Kája a Lukášková, Kuba a kamery,
 js/22_struny.js       quest Struny pro Málu (kleště od školníka s odpočtem, Binková hlídá, kytary v C202)
 js/23_tabak.js        quest Tabák pro Křiváčka (prohledat A113, sáčky = rychlejší chůze)
 js/24_damien.js       studenti Damien, Robin, Michaelle a quest s hádankou na tabuli
+js/25_robin.js        miniquest HTML pro Robina (editor s náhledem, Jelínek radí za peníze)
 js/15_hlavni.js       update/render podle obrazovky, herní smyčka, START (musí být poslední)
 obrazky/              hlavy 48 × 48 px: hrac.png, mala.png, krivacek.png, rauscher.png, holub.png, soumar.png, lencova.png, vesela.png, mraz.png …
 zvuky/                hudba: pozadí/ = hudba na pozadí (CONFIG.MUSIC_PLAYLIST), „Treplev.mp3“ (v C202 u Kluse), „fotbálek.mp3“ (u fotbálku), Mykyta/ = písničky od Mykyho
@@ -481,6 +482,10 @@ Další učitelé bez úkolu: Křiváček (kabinet2, hlava z `Křiváček oprava
 8. **Damien a Michaelle** (`damien`, `js/24_damien.js`): Damien stojí v hale před šatnou kluků. Chce mluvit s Michaelle (už na školu nechodí, přišla se podívat, pracuje v květinářství). Ta je v C308 vedle Švecové a povídají si (bubliny `MICHAELLE_CHAT`, `drawMichaelleChat`). Když jí to Roman řekne, Švecová dá hádanku a odpověď se píše na „tabuli“ – opravdové textové pole přes hru (`openBoard`, na mobilu vyskočí klávesnice, psaní neovládá hru). Správně je jen „vířivka“ (velké V a tečka nevadí, „virivka“ nebo „vyřivka“ je pravopisná chyba, `boardVerdict`). Dva pokusy, pak se quest začíná znovu u Damiena – každé kolo má jiné hlášky Damiena, Michaelle a Švecové i jinou hádanku (`DAMIEN_ASK`, `MICHAELLE_TOLD`, `DAMIEN_RIDDLES`, `MICHAELLE_FAIL`, `story.damien.round`).
    - Po správné odpovědi Michaelle dojde za Damienem a oba odejdou do holčičí šatny. Od chvíle, kdy Michaelle vyrazí, se do šatny nedá vejít ani jedním vchodem (`doorBlocked`, z haly i z tělocvičny) – Roman řekne „Asi bych tam neměl chodit, třeba probírají něco důležitého.“ Kdyby tam byl, vystrčí ho to do haly (`kickFromSatna`).
    - **Robin** stojí v A302 s Jelínkem. Hlavy jsou z `fotky/Damien.jpg`, `Robin.jpg`, `Michaelle .jpg` (příkazy na konci `tools/ucitele.sh`).
+
+9. **HTML pro Robina** (`robin`, `js/25_robin.js`): Robin v A302 potřebuje napsat stránku v HTML (nadpis h1, odstavec s br, tučné b, kurzíva i, seznamy ul a ol – zadání `ROBIN.TASK`). Kód se píše do editoru přes hru s živým náhledem (`openEditor`, `state.board` = hra stojí). Vkládání nejde, opsat se musí ručně. Rozepsaný kód se ukládá (`story.robin.code`).
+   - Jelínek radí za peníze: 200 Kč napíše celé, 150 Kč ukáže celý kód (musí se přepsat, text rady nejde označit), 100 Kč ukáže vybranou část (`ROBIN.PARTS`), 50 Kč náhodnou část s vynechanými značkami `<___>` (`holey`). Rady zůstávají v editoru (`story.robin.hints`).
+   - Kontrola (`checkHtml`): všechny párové značky zavřené, správné texty, b/strong a i/em obojí platí. Robin vypíše nejvýš 3 chyby.
 
 **Studenti** jsou v `TEACHERS` se `student: true` (stejná data jako učitelé).
 
