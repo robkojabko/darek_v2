@@ -257,7 +257,7 @@ const TEACHERS = {
   // Studenti jsou zapsaní stejně jako učitelé (mluví se s nimi mezerníkem).
   misak: {
     name: 'Mišák', pro: 'Mišáka', student: true, color: '#1f1f22',
-    room: 'c109', at: { x: 318 / 520, y: 208 / 400 },
+    room: 'c109', at: { x: 106 / 520, y: 200 / 400 },   // vedle Binkové, povídají si (20_skola.js)
     look: { face: 'misak', body: '#1f1f22', collar: '#2c2c30', arms: '#1f1f22', pants: '#34495e', shoes: '#e8e8e8' },
     texts: { idle: 'Čau! Co tady děláš?' },
   },

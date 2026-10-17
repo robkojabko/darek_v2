@@ -116,6 +116,21 @@ TEACHERS.terka.talk = gossipTalk;
 const rauscherTalkBefore = TEACHERS.rauscher.talk;
 TEACHERS.rauscher.talk = () => (rauscherTalkBefore && rauscherTalkBefore()) || gossipTalk();
 
+// Binková (češtinářka) a Mišák si v C109 povídají – rozhovor jen po rozkliknutí, žádné bubliny
+function binkovaMisakTalk() {
+  const b = TEACHERS.binkova, m = TEACHERS.misak;
+  if (vrahOn() || b.room !== 'c109' || m.room !== 'c109' || b.route) return false;
+  playScene([
+    { who: b, text: 'Představ si, že mi někdo do testu napsal, že Gulliverovy cesty jsou sci-fi! Já u toho opravování vypila tři Kozly a vykouřila krabičku cigaret!' },
+    { who: m, text: 'No já bych věděl, kdo to napsal.' },
+  ]);
+  return true;
+}
+for (const id of ['binkova', 'misak']) {
+  const before = TEACHERS[id].talk;
+  TEACHERS[id].talk = () => (before && before()) || binkovaMisakTalk();
+}
+
 // Bublina nad tím, kdo zrovna mluví (jen když je hráč poblíž)
 function drawGossipBubble() {
   const r = TEACHERS.rauscher, t = TEACHERS.terka;

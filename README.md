@@ -489,6 +489,8 @@ Další učitelé bez úkolu: Křiváček (kabinet2, hlava z `Křiváček oprava
    - Kontrola (`checkHtml`): všechny párové značky zavřené, správné texty (na velikosti písmen, tečkách a mezerách nezáleží), b/strong a i/em obojí platí. `<br>` může být uvnitř odstavce i mezi dvěma odstavci, jen musí být mezi oběma větami. Robin vypíše nejvýš 3 chyby.
    - Náhled se po znovuotevření editoru vykreslí až ve chvíli, kdy je editor vidět (`updatePreview(true)`), jinak zůstával prázdný.
 
+**Binková a Mišák** stojí v C109 vedle sebe u tabule. Když na jednoho z nich Roman promluví, zahrají rozhovor o testu s Gulliverovými cestami (`binkovaMisakTalk` v `20_skola.js`). Bubliny nad nimi nejsou, rozhovor je jen po rozkliknutí.
+
 **Studenti** jsou v `TEACHERS` se `student: true` (stejná data jako učitelé).
 
 - **Kuba Vozábal** (`vozabal`) chodí po chodbách celé školy, do tříd nechodí. Jde po trase `route` tam a zpátky rychlostí 70 px/s, celé kolečko trvá asi 9 minut.
