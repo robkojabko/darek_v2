@@ -1,4 +1,4 @@
-// Noví studenti Damien, Robin a Michaelle; quest „Damien a Michaelle“
+// Noví studenti Damien, Robin a Michele; quest „Damien a Michele“
 // Část hry Dárek – načítá se v index.html v pořadí podle čísla (před 15_hlavni.js).
 'use strict';
 
@@ -6,21 +6,24 @@
 // POSTAVY
 //   Damien – na chodbě v hale před šatnou kluků (zadává quest)
 //   Robin – v A302 s Jelínkem
-//   Michaelle – v C308 vedle Švecové (už na školu nechodí, přišla se podívat;
+//   Michele – v C308 vedle Švecové (už na školu nechodí, přišla se podívat;
 //               povídají si spolu – bubliny nad nimi)
-// QUEST: Damien chce mluvit s Michaelle, ví jen, že je na Céčku. Švecová ji pustí,
+// QUEST: Damien chce mluvit s Michele, ví jen, že je na Céčku. Švecová ji pustí,
 // jen když Roman uhodne hádanku a napíše odpověď na tabuli: „vířivka“ (pravopisně
 // správně). Na dva pokusy – pak se quest začíná znovu (hlášky i hádanka jsou jiné).
-// Michaelle pak dojde za Damienem a oba odejdou do holčičí šatny; tam už Roman nesmí.
-// Postup je ve state.story.damien: { step: null | 'najit' | 'jde' | 'satna', round, tries }
+// Michele pak dojde za Damienem a oba odejdou do holčičí šatny; tam už Roman nesmí.
+// Po minutě v šatně (DAMIEN.SATNA_TIME) vyjdou a vrátí se tam, kde začínali.
+// Postup je ve state.story.damien: { step: null | 'najit' | 'jde' | 'satna' | 'zpet' | 'hotovo', round, tries, t }
 // =====================================================================
 const HALA = ROOMS.chodba.parts.find((p) => p.id === 'hala');
 const CH = ROOMS.chodba;
 const DAMIEN = {
   HOME: { room: 'chodba', at: { x: (HALA.offset.x + 62) / CH.w, y: (HALA.offset.y + 300) / CH.h } },        // před šatnou kluků
-  MEET: { room: 'chodba', at: { x: (HALA.offset.x + 62) / CH.w, y: (HALA.offset.y + 250) / CH.h } },        // Michaelle dojde k němu
+  MEET: { room: 'chodba', at: { x: (HALA.offset.x + 62) / CH.w, y: (HALA.offset.y + 250) / CH.h } },        // Michele dojde k němu
   SATNA: 'satnaHolky',
   IN_SATNA: [{ room: 'satnaHolky', at: { x: 0.45, y: 0.4 } }, { room: 'satnaHolky', at: { x: 0.6, y: 0.4 } }],
+  MI_HOME: { room: 'c308', at: { x: 108 / 520, y: 205 / 400 } },   // vedle Švecové
+  SATNA_TIME: 60,        // s v šatně, pak vyjdou a jdou zpátky
   ANSWER: 'vířivka',
   TRIES: 2,
 };
@@ -38,14 +41,14 @@ Object.assign(TEACHERS, {
     texts: { idle: 'Čau! Jelínek mě nechal po hodině zapojovat kabely. Zase.' },
   },
   michaelle: {
-    name: 'Michaelle', pro: 'Michaelle', student: true, color: '#8e6bb0',
-    room: 'c308', at: { x: 108 / 520, y: 205 / 400 },
+    name: 'Michele', pro: 'Michele', student: true, color: '#8e6bb0',
+    room: 'c308', at: { x: 108 / 520, y: 205 / 400 },   // = DAMIEN.MI_HOME
     look: { face: 'michaelle', body: '#9ea4ab', collar: '#8a9097', arms: '#f0c8a8', pants: '#2f3a52', shoes: '#fafafa' },
     texts: { idle: 'Ahoj! Já už sem nechodím, jen jsem se přišla podívat.' },
   },
 });
 const DA = () => TEACHERS.damien, MI = () => TEACHERS.michaelle, SV = () => TEACHERS.svecova;
-QUESTS.push({ id: 'damien', title: 'Damien a Michaelle', teacher: 'damien', hint: damienHint });
+QUESTS.push({ id: 'damien', title: 'Damien a Michele', teacher: 'damien', hint: damienHint });
 
 function damien() {
   if (!state.story.damien) state.story.damien = { step: null, round: 0, tries: 0 };
@@ -55,14 +58,14 @@ const damienQuest = () => questById('damien');
 function damienHint() {
   const st = questStage(damienQuest()), d = damien();
   if (st === 'none') return 'Zajdi za: Damien (v hale před šatnou kluků)';
-  if (d.step === 'najit') return 'Najdi Michaelle – je někde na Céčku';
-  if (d.step === 'jde') return 'Michaelle jde za Damienem';
+  if (d.step === 'najit') return 'Najdi Michele – je někde na Céčku';
+  if (d.step === 'jde') return 'Michele jde za Damienem';
   return '';
 }
 
 // --- hlášky (každé kolo jiné) ---
 const DAMIEN_ASK = [
-  'Čau Romane. Potřebuju si nutně promluvit s Michaelle, ale nevím, kde je. Vím jen, že je někde na Céčku. Najdeš ji a řekneš jí, ať za mnou přijde?',
+  'Čau Romane. Potřebuju si nutně promluvit s Michele, ale nevím, kde je. Vím jen, že je někde na Céčku. Najdeš ji a řekneš jí, ať za mnou přijde?',
   'Zase nic? Hm… Zkus to prosím ještě jednou. Pořád vím jen to, že je na Céčku. Řekni jí, ať za mnou přijde.',
   'Romane, fakt mi na tom záleží. Je na Céčku, jinde ne. Prosím, pošli ji za mnou.',
   'Já vím, já vím… Ale bez ní to nejde. Céčko, Romane. Ještě jednou, prosím.',
@@ -85,13 +88,13 @@ const DAMIEN_RIDDLES = [
   'Do bazénu se skáče, do mě se jen opatrně sedá. Chlad nesnáším, bubliny zbožňuji a víření je moje druhé jméno. Co jsem?',
 ];
 const MICHAELLE_FAIL = [
-  [['svecova', 'Bohužel. Michaelle zůstává tady, máme si ještě co povídat.'], ['michaelle', 'Promiň, Romane. Vyřiď Damienovi, ať to zkusí jinak.']],
+  [['svecova', 'Bohužel. Michele zůstává tady, máme si ještě co povídat.'], ['michaelle', 'Promiň, Romane. Vyřiď Damienovi, ať to zkusí jinak.']],
   [['svecova', 'Zase vedle. To bude pětka z hádanek.'], ['michaelle', 'Řekni Damienovi, že se fakt snažíš.']],
-  [['svecova', 'Ne a ne. Michaelle, sedni si.'], ['michaelle', 'Tak zase příště, Romane.']],
+  [['svecova', 'Ne a ne. Michele, sedni si.'], ['michaelle', 'Tak zase příště, Romane.']],
 ];
-// povídání Michaelle se Švecovou (bubliny nad nimi a rozhovor, když na ně Roman promluví)
+// povídání Michele se Švecovou (bubliny nad nimi a rozhovor, když na ně Roman promluví)
 const MICHAELLE_CHAT = [
-  [['svecova', 'Tak co, Michaelle, jak se máš? Dlouho jsi tu nebyla.'], ['michaelle', 'Mám se fajn! Pracuju teď v květinářství.']],
+  [['svecova', 'Tak co, Michele, jak se máš? Dlouho jsi tu nebyla.'], ['michaelle', 'Mám se fajn! Pracuju teď v květinářství.']],
   [['svecova', 'V květinářství? To je krásná práce.'], ['michaelle', 'Je! Celý den kytky. Jen ty růže dost píchají.']],
   [['svecova', 'A chybí ti škola?'], ['michaelle', 'Trochu. Hlavně vy. Testy ne.']],
   [['michaelle', 'Včera jsme vázali kytice na svatbu, asi padesát.'], ['svecova', 'To je ale romantika! A kdo se bral?']],
@@ -111,6 +114,7 @@ function damienTalk() {
   }
   if (d.step === 'najit') { playScene([{ who: DA(), text: 'Tak co, našel jsi ji? Je někde na Céčku.' }]); return true; }
   if (d.step === 'jde') { playScene([{ who: DA(), text: 'Ona už jde? Díky, Romane!' }]); return true; }
+  if (d.step === 'hotovo' || d.step === 'zpet') { playScene([{ who: DA(), text: 'Díky, Romane. Všechno jsme si s Michele vyříkali.' }]); return true; }
   return false;
 }
 function michaelleTalk() {
@@ -124,7 +128,7 @@ function michaelleTalk() {
   }
   const k = d.round % MICHAELLE_TOLD.length;
   playScene([
-    { text: d.round ? 'Michaelle, zase já. Damien s tebou pořád chce mluvit.' : 'Ahoj Michaelle, Damien by s tebou chtěl mluvit. Ať prý za ním přijdeš.' },
+    { text: d.round ? 'Michele, zase já. Damien s tebou pořád chce mluvit.' : 'Ahoj Michele, Damien by s tebou chtěl mluvit. Ať prý za ním přijdeš.' },
     ...chatScene(MICHAELLE_TOLD[k]),
     { who: SV(), text: DAMIEN_RIDDLES[d.round % DAMIEN_RIDDLES.length] },
     { act: openBoard },
@@ -203,7 +207,7 @@ function submitBoard() {
     playSound([[523, 0, 0.08], [659, 0.09, 0.08], [784, 0.18, 0.14]]);
     playScene([
       { text: `*píše na tabuli* ${written}` },
-      { who: SV(), text: 'Vířivka! Správně – a i pravopis sedí. Tak běž, Michaelle.' },
+      { who: SV(), text: 'Vířivka! Správně – a i pravopis sedí. Tak běž, Michele.' },
       { who: MI(), text: 'Díky, Romane! Jdu za Damienem.' },
     ], michaelleGoes);
     return;
@@ -227,12 +231,12 @@ function submitBoard() {
   });
 }
 
-// --- Michaelle jde za Damienem a pak oba do holčičí šatny ---
+// --- Michele jde za Damienem a pak oba do holčičí šatny ---
 function michaelleGoes() {
   const d = damien();
   d.step = 'jde';
   walkTo(MI(), DAMIEN.MEET, 120, () => {
-    if (state.room.id === 'chodba') state.toast = { text: 'Michaelle: „Ahoj Damiene! Pojď, půjdeme si promluvit.“', t: CONFIG.TOAST_TIME + 1 };
+    if (state.room.id === 'chodba') state.toast = { text: 'Michele: „Ahoj Damiene! Pojď, půjdeme si promluvit.“', t: CONFIG.TOAST_TIME + 1 };
     walkTo(MI(), DAMIEN.IN_SATNA[0], 80, (t) => { placeStatic(t, DAMIEN.IN_SATNA[0].room, DAMIEN.IN_SATNA[0].at); refreshCast(); }, 0.5);
     walkTo(DA(), DAMIEN.IN_SATNA[1], 80, (t) => { placeStatic(t, DAMIEN.IN_SATNA[1].room, DAMIEN.IN_SATNA[1].at); refreshCast(); pairInSatna(); }, 1);
   });
@@ -240,9 +244,9 @@ function michaelleGoes() {
 function pairInSatna() {
   const d = damien();
   if (d.step === 'satna') return;
-  d.step = 'satna';
+  d.step = 'satna'; d.t = DAMIEN.SATNA_TIME;
   setQuestStage(damienQuest(), 'done');
-  state.toast = { text: '✅ Úkol splněn: Damien a Michaelle si jdou promluvit', t: CONFIG.TOAST_TIME + 1 };
+  state.toast = { text: '✅ Úkol splněn: Damien a Michele si jdou promluvit', t: CONFIG.TOAST_TIME + 1 };
   if (state.room.id === DAMIEN.SATNA) kickFromSatna();   // Roman tam nesmí zůstat
 }
 function kickFromSatna() {
@@ -250,7 +254,7 @@ function kickFromSatna() {
   enterRoom(door.to, door.spawn);
   playScene([{ text: 'Asi bych tam neměl chodit, třeba probírají něco důležitého.' }]);
 }
-// do holčičí šatny (oba vchody) se nesmí, jakmile Michaelle vyrazí – ať tam Roman nedoběhne dřív
+// do holčičí šatny (oba vchody) se nesmí, jakmile Michele vyrazí – ať tam Roman nedoběhne dřív
 const satnaClosed = () => !vrahOn() && ['jde', 'satna'].includes(damien().step);
 {
   const before = doorBlocked;
@@ -264,26 +268,39 @@ const satnaClosed = () => !vrahOn() && ['jde', 'satna'].includes(damien().step);
   };
 }
 // každý snímek: kdyby byl Roman v šatně, když je zavřená (načtená hra…), vystrčí ho
-function updateDamien() {
+function updateDamien(dt) {
+  if (vrahOn()) return;
+  const d = damien();
   if (satnaClosed() && state.room.id === DAMIEN.SATNA && !state.dialog && !state.scene && !state.transition) kickFromSatna();
+  if (d.step !== 'satna') return;
+  d.t = (d.t ?? DAMIEN.SATNA_TIME) - dt;
+  if (d.t > 0) return;
+  // vyjdou ze šatny a každý jde tam, kde začínal
+  d.step = 'zpet';
+  let home = 0;
+  const arrived = (t, place) => { placeStatic(t, place.room, place.at); refreshCast(); if (++home === 2) d.step = 'hotovo'; };
+  walkTo(MI(), DAMIEN.MI_HOME, 110, (t) => arrived(t, DAMIEN.MI_HOME));
+  walkTo(DA(), DAMIEN.HOME, 90, (t) => arrived(t, DAMIEN.HOME), 0.6);
+  if (state.room.id === 'chodba') state.toast = { text: 'Damien a Michele vyšli ze šatny.', t: CONFIG.TOAST_TIME };
 }
 // po načtení hry: rozdělaná cesta = už jsou v šatně
 function applyDamien() {
   const d = damien();
   if (vrahOn()) return;
   if (d.step === 'najit' && questStage(damienQuest()) !== 'assigned') d.step = null;
-  if (d.step === 'jde') { d.step = 'satna'; setQuestStage(damienQuest(), 'done'); }
+  if (d.step === 'jde') { d.step = 'satna'; d.t = DAMIEN.SATNA_TIME; setQuestStage(damienQuest(), 'done'); }
+  if (d.step === 'zpet') d.step = 'hotovo';
   if (d.step === 'satna') {
     placeStatic(MI(), DAMIEN.IN_SATNA[0].room, DAMIEN.IN_SATNA[0].at);
     placeStatic(DA(), DAMIEN.IN_SATNA[1].room, DAMIEN.IN_SATNA[1].at);
   } else {
-    placeStatic(MI(), 'c308', TEACHERS.michaelle.home || { x: 108 / 520, y: 205 / 400 });
+    placeStatic(MI(), DAMIEN.MI_HOME.room, DAMIEN.MI_HOME.at);
     placeStatic(DA(), DAMIEN.HOME.room, DAMIEN.HOME.at);
   }
 }
 
-// bubliny: Michaelle a Švecová si povídají (jen když je hráč poblíž a Michaelle je v C308)
-function drawMichaelleChat() {
+// bubliny: Michele a Švecová si povídají (jen když je hráč poblíž a Michele je v C308)
+function drawMicheleChat() {
   const m = MI(), s = SV();
   if (vrahOn() || !m.rect || !s.rect || m.room !== state.room.id || s.room !== state.room.id || state.dialog || m.route) return;
   const p = state.player;

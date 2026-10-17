@@ -821,7 +821,7 @@ function updateStory(dt) {
   updateLiliRun(dt);
   updatePivo(dt);   // Kuba odlákává Soumara, Soumar hlídá předsíň (21_pivo.js)
   updateStruny(dt);   // čas na vrácení kleští, Binková hlídá (22_struny.js)
-  updateDamien();     // do holčičí šatny se nesmí (24_damien.js)
+  updateDamien(dt);   // šatna zavřená, po minutě vyjdou a jdou zpátky (24_damien.js)
   if (state.wires) updateWires(dt);
   // změna místnosti: Treplev v C202, Lili se rozejde, až hráč vyjde z C202
   const id = state.room.id;

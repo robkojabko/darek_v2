@@ -65,7 +65,7 @@ gc  "Švecová.jpg"     "0,0,120,120"   SVECOVA
 python tools/oblicej_na_sprite.py --foto "fotky/školník.jpg" --vyrez=9,11,41,43 --cil SKOLNIK --prah 0 --barvy 32 --oval 0.8   # Vrah: školník (fotka je malá)
 python tools/oriznout_podle_car.py --oprava "fotky/školník oprava.jpg" --hlava skolnik --vrsek   # pravá čára jde i přes vršek čepice
 # zarovnání: pozadí vpravo vedle tváře pryč (sloupce 34+ od řádku 13), obličej na střed – ručně v Pythonu (README)
-# studenti Damien, Robin, Michaelle (jméno se píše Michaelle jako na fotce)
+# studenti Damien, Robin, Michele (jméno se píše Michele, fotka se jmenuje Michaelle)
 python tools/oblicej_na_sprite.py --foto "fotky/Michaelle .jpg" --vyrez=0,20,180,200 --cil MICHAELLE --prah 0 --barvy 24 --oval 0.9
 python tools/oblicej_na_sprite.py --foto "fotky/Robin.jpg" --vyrez=10,70,490,550 --cil ROBIN --prah 0 --barvy 24 --oval 0.95 --grabcut
 python tools/oblicej_na_sprite.py --foto "fotky/Damien.jpg" --vyrez=0,12,124,136 --cil DAMIEN --prah 0 --barvy 24 --oval 0.98
