@@ -181,7 +181,8 @@ function inventoryItems() {
   list.push(...vrahInventory());
   list.push(...pivoInventory());   // recept na pivo (21_pivo.js)
   list.push(...strunyInventory());   // kleště a struny (22_struny.js)
-  list.push(...tabakInventory());    // tabák pro Křiváčka a sáčky (23_tabak.js)   // klíč, stopy, samolepka, lektvar… (18_vrah.js)
+  list.push(...tabakInventory());    // tabák pro Křiváčka a sáčky (23_tabak.js)
+  list.push(...teplotaInventory());  // teploměr pro Láďu (26_teplota.js)   // klíč, stopy, samolepka, lektvar… (18_vrah.js)
   for (const [name, n] of counts) {
     const f = foodOf(name);
     list.push({ icon: shopItemIcon(name), name, food: name,

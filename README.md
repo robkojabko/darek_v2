@@ -60,6 +60,7 @@ js/22_struny.js       quest Struny pro Málu (kleště od školníka s odpočtem
 js/23_tabak.js        quest Tabák pro Křiváčka (prohledat A113, sáčky = rychlejší chůze)
 js/24_damien.js       studenti Damien, Robin, Michele a quest s hádankou na tabuli
 js/25_robin.js        miniquest HTML pro Robina (editor s náhledem, Jelínek radí za peníze)
+js/26_teplota.js      miniquest Teplota pro Láďu a výběr u školníka (kleště / teploměr)
 js/15_hlavni.js       update/render podle obrazovky, herní smyčka, START (musí být poslední)
 obrazky/              hlavy 48 × 48 px: hrac.png, mala.png, krivacek.png, rauscher.png, holub.png, soumar.png, lencova.png, vesela.png, mraz.png …
 zvuky/                hudba: pozadí/ = hudba na pozadí (CONFIG.MUSIC_PLAYLIST), „Treplev.mp3“ (v C202 u Kluse), „fotbálek.mp3“ (u fotbálku), Mykyta/ = písničky od Mykyho
@@ -493,6 +494,10 @@ Další učitelé bez úkolu: Křiváček (kabinet2, hlava z `Křiváček oprava
 
 **Názvy kabinetů a pater** (`20_skola.js`, nahoře): kabinety se jmenují podle učitelů – Kabinet Soumar (A215), Kabinet Ládová (A214), Kabinet Telingerová (A213), Kabinet Lencová (dřív Kabinet 3), Kabinet Mála, Kabinet Křiváček (2), Kabinet Chána (4), Kabinet Binková a Kučerová (5), Kabinet Holuba (7), Kabinet Švecové (8). **Ládová** stojí ve svém kabinetu (A214), **Telingerová** ve svém (A213) a **Kučerová** v Kabinetu Binková a Kučerová (Kabinet 5). Hlavy jsou z malých kulatých fotek (`fotky/Ládová.jpg`, `Telingerová .jpg`, `Kučerová .jpg`, příkazy na konci `tools/ucitele.sh`), hlášky jsou provizorní. Chodby budovy A mají jeden název na patro: **Přízemí**, **1. patro**, **2. patro** (bez západní a východní chodby). Hala s pingpongem, Spojovačka (dřív Prosklená chodba) a schodiště mají svůj název dál.
 **Mráz** (dozor na parkovišti) říká: „Můj poslední dozor a pak tu nebudu dva měsíce, tak se snad nic nestane.“
+
+10. **Teplota pro Láďu** (`teplota`, `js/26_teplota.js`): Láďa chce vědět, kolik je venku stupňů. Teploměr půjčí školník. Ve venkovní učebně nebo na parkovišti se mezerníkem změří teplota (bublina „Mezerník“ je přímo u hráče, `measureSpot`), je náhodná od −8 do 28 °C. Láďa na jakoukoli teplotu řekne „Jo, tak to dneska půjdeme na těláku ven.“
+   - **Školník** (`skolnikMain`): když má hráč rozdělané kleště (struny pro Málu – půjčit, nebo vrátit) a zároveň potřebuje teploměr, vybere si v nabídce. Když jen jedno, dostane to rovnou. Ověřené cesty: jen teploměr, jen kleště, obojí (výběr teploměru i kleští), vrácení kleští + teploměr, nic.
+   - Hlášky Telingerové, Ládové a Kučerové jsou od uživatele (matika a Metoděj, sloh v pondělí, Racek k maturitě).
 
 **Studenti** jsou v `TEACHERS` se `student: true` (stejná data jako učitelé).
 
