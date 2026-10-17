@@ -36,7 +36,7 @@ const ROBIN = {
     'Napiš stránku, na které bude:',
     '1. nadpis (h1): Můj oblíbený den',
     '2. odstavec (p): Dneska je pátek a mám radost. – slovo „pátek“ tučně (b), slovo „radost“ kurzívou (i)',
-    '3. v odstavci zalomení řádku (br) a za ním: Zítra se nejde do školy.',
+    '3. zalomení řádku (br) a za ním věta: Zítra se nejde do školy.',
     '4. seznam s odrážkami (ul): pizza, kino',
     '5. číslovaný seznam (ol): vstát, jít ven',
   ],
@@ -84,36 +84,38 @@ RO().talk = robinTalk;
 }
 
 // --- kontrola kódu ---
+// Kontrolují se hlavně značky. Na velikosti písmen, tečkách a mezerách v textu nezáleží.
+// <br> může být uvnitř odstavce, nebo mezi dvěma odstavci – hlavně musí být mezi oběma větami.
 const norm = (s) => (s || '').replace(/\s+/g, ' ').trim();
+const loose = (s) => norm((s || '').toLocaleLowerCase('cs').replace(/[.,!?;:„“"]/g, ' '));
 function checkHtml(code) {
   const problems = [];
   // každá párová značka musí být i zavřená
   const pairs = [['h1'], ['p'], ['ul'], ['ol'], ['li'], ['b', 'strong'], ['i', 'em']];
   for (const names of pairs) {
-    const open = names.reduce((n, t) => n + (code.match(new RegExp(`<${t}(\\s[^>]*)?>`, 'gi')) || []).length, 0);
-    const close = names.reduce((n, t) => n + (code.match(new RegExp(`</${t}\\s*>`, 'gi')) || []).length, 0);
+    const open = names.reduce((n, t) => n + (code.match(new RegExp(`<${t}(\s[^>]*)?>`, 'gi')) || []).length, 0);
+    const close = names.reduce((n, t) => n + (code.match(new RegExp(`</${t}\s*>`, 'gi')) || []).length, 0);
     if (open !== close) problems.push(`Značka <${names[0]}> není všude zavřená (</${names[0]}>).`);
   }
   const doc = new DOMParser().parseFromString(code, 'text/html');
   const one = (sel) => doc.querySelector(sel);
   const h1 = one('h1');
   if (!h1) problems.push('Chybí nadpis <h1>.');
-  else if (norm(h1.textContent) !== 'Můj oblíbený den') problems.push('Nadpis má mít text „Můj oblíbený den“.');
-  const p = one('p');
-  if (!p) problems.push('Chybí odstavec <p>.');
-  else {
-    const text = norm(p.textContent.replace(/\s+/g, ' '));
-    if (!p.querySelector('br')) problems.push('V odstavci chybí zalomení řádku <br>.');
-    const parts = norm(Array.from(p.childNodes).map((n) => (n.nodeName === 'BR' ? '|' : n.textContent)).join(''));
-    const [first, second] = parts.split('|').map(norm);
-    if (norm(first) !== 'Dneska je pátek a mám radost.') problems.push('První řádek odstavce má být „Dneska je pátek a mám radost.“');
-    if (norm(second) !== 'Zítra se nejde do školy.') problems.push('Za <br> má být „Zítra se nejde do školy.“');
-    if (!text) problems.push('Odstavec je prázdný.');
-    const bold = p.querySelector('b, strong'), it = p.querySelector('i, em');
-    if (!bold || norm(bold.textContent) !== 'pátek') problems.push('Slovo „pátek“ má být tučně (<b>).');
-    if (!it || norm(it.textContent) !== 'radost') problems.push('Slovo „radost“ má být kurzívou (<i>).');
-  }
-  const items = (sel) => Array.from(doc.querySelectorAll(`${sel} > li`)).map((li) => norm(li.textContent));
+  else if (loose(h1.textContent) !== 'můj oblíbený den') problems.push('Nadpis má mít text „Můj oblíbený den“.');
+  if (!one('p')) problems.push('Chybí odstavec <p>.');
+  // text stránky, kde <br> = „|“
+  const flat = (node) => Array.from(node.childNodes).map((n) => (n.nodeName === 'BR' ? ' | ' : n.nodeType === 3 ? n.textContent : flat(n))).join(' ');
+  const body = loose(flat(doc.body));
+  const first = 'dneska je pátek a mám radost', second = 'zítra se nejde do školy';
+  if (!body.includes(first)) problems.push('Chybí věta „Dneska je pátek a mám radost.“');
+  if (!body.includes(second)) problems.push('Chybí věta „Zítra se nejde do školy.“');
+  if (!one('br')) problems.push('Chybí zalomení řádku <br>.');
+  else if (body.includes(first) && body.includes(second) && !new RegExp(`${first}[^|]*[|][^|]*${second}`).test(body)) problems.push('<br> má být mezi oběma větami.');
+  const bold = Array.from(doc.querySelectorAll('b, strong')).some((e) => loose(e.textContent) === 'pátek');
+  const it = Array.from(doc.querySelectorAll('i, em')).some((e) => loose(e.textContent) === 'radost');
+  if (!bold) problems.push('Slovo „pátek“ má být tučně (<b>pátek</b>).');
+  if (!it) problems.push('Slovo „radost“ má být kurzívou (<i>radost</i>).');
+  const items = (sel) => Array.from(doc.querySelectorAll(`${sel} > li`)).map((li) => loose(li.textContent));
   if (!one('ul')) problems.push('Chybí seznam s odrážkami <ul>.');
   else if (items('ul').join('|') !== 'pizza|kino') problems.push('Seznam <ul> má mít položky <li> pizza a kino.');
   if (!one('ol')) problems.push('Chybí číslovaný seznam <ol>.');
@@ -128,9 +130,9 @@ function openEditor() {
   const r = robin();
   editorEl.querySelector('.ed-kod').value = r.code;
   renderHints();
-  updatePreview();
   editorEl.querySelector('.ed-vysledek').textContent = '';
   editorEl.style.display = 'flex';
+  requestAnimationFrame(() => updatePreview(true));   // náhled až je editor vidět (jinak po znovuotevření zůstal prázdný)
   state.board = true;   // hra stojí (17_pribehy.js)
   input.keys.clear();
 }
@@ -216,9 +218,10 @@ function buildEditor() {
   editorEl.querySelector('.ed-zkontrolovat').addEventListener('click', submitCode);
   editorEl.querySelectorAll('[data-rada]').forEach((b) => b.addEventListener('click', () => buyHint(Number(b.dataset.rada))));
 }
-function updatePreview() {
-  const code = editorEl.querySelector('.ed-kod').value;
-  editorEl.querySelector('.ed-nahled').srcdoc = `<meta charset="utf-8"><style>body{font-family:sans-serif;margin:8px}</style>${code}`;
+function updatePreview(force = false) {
+  const code = editorEl.querySelector('.ed-kod').value, frame = editorEl.querySelector('.ed-nahled');
+  if (force) frame.removeAttribute('srcdoc');   // stejný obsah by se jinak znovu nenačetl
+  frame.srcdoc = `<meta charset="utf-8"><style>body{font-family:sans-serif;margin:8px}</style>${code}`;
   robin().code = code;
 }
 function showResult(text, ok = false) {

@@ -486,7 +486,8 @@ Další učitelé bez úkolu: Křiváček (kabinet2, hlava z `Křiváček oprava
 
 9. **HTML pro Robina** (`robin`, `js/25_robin.js`): Robin v A302 potřebuje napsat stránku v HTML (nadpis h1, odstavec s br, tučné b, kurzíva i, seznamy ul a ol – zadání `ROBIN.TASK`). Kód se píše do editoru přes hru s živým náhledem (`openEditor`, `state.board` = hra stojí). Vkládání nejde, opsat se musí ručně. Rozepsaný kód se ukládá (`story.robin.code`).
    - Jelínek radí za peníze: 200 Kč napíše celé, 150 Kč ukáže celý kód (musí se přepsat, text rady nejde označit), 100 Kč ukáže vybranou část (`ROBIN.PARTS`), 50 Kč náhodnou část s vynechanými značkami `<___>` (`holey`). Rady zůstávají v editoru (`story.robin.hints`).
-   - Kontrola (`checkHtml`): všechny párové značky zavřené, správné texty, b/strong a i/em obojí platí. Robin vypíše nejvýš 3 chyby.
+   - Kontrola (`checkHtml`): všechny párové značky zavřené, správné texty (na velikosti písmen, tečkách a mezerách nezáleží), b/strong a i/em obojí platí. `<br>` může být uvnitř odstavce i mezi dvěma odstavci, jen musí být mezi oběma větami. Robin vypíše nejvýš 3 chyby.
+   - Náhled se po znovuotevření editoru vykreslí až ve chvíli, kdy je editor vidět (`updatePreview(true)`), jinak zůstával prázdný.
 
 **Studenti** jsou v `TEACHERS` se `student: true` (stejná data jako učitelé).
 
