@@ -70,3 +70,7 @@ python tools/oblicej_na_sprite.py --foto "fotky/Michaelle .jpg" --vyrez=0,20,180
 python tools/oblicej_na_sprite.py --foto "fotky/Robin.jpg" --vyrez=10,70,490,550 --cil ROBIN --prah 0 --barvy 24 --oval 0.95 --grabcut
 python tools/oblicej_na_sprite.py --foto "fotky/Damien.jpg" --vyrez=0,12,124,136 --cil DAMIEN --prah 0 --barvy 24 --oval 0.98
 # Damien: béžová zeď splývá s pletí (GrabCut nefunguje) – pak ručně užší elipsa (cx 0.54, rx 0.36, ry 0.49 šířky/výšky) a tmavý obrys
+# Ládová, Telingerová, Kučerová (malé kulaté fotky ze školního webu)
+python tools/oblicej_na_sprite.py --foto "fotky/Telingerová .jpg" --vyrez=9,3,57,51 --cil TELINGEROVA --prah 0 --barvy 32 --oval 0.92
+python tools/oblicej_na_sprite.py --foto "fotky/Ládová.jpg" --vyrez=9,3,45,39 --cil LADOVA --prah 0 --barvy 32 --oval 0.88
+python tools/oblicej_na_sprite.py --foto "fotky/Kučerová .jpg" --vyrez=8,3,46,41 --cil KUCEROVA --prah 0 --barvy 32 --oval 0.92

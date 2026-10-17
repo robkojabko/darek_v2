@@ -443,8 +443,8 @@ const ROOMS = {
     ],
   },
   prosklena: {
-    name: 'Prosklená chodba',
-    where: 'na prosklené chodbě',
+    name: 'Spojovačka',
+    where: 'na spojovačce',
     w: 240, h: 520,          // svislá, vede od schodů nahoru
     floorColor: '#dfb39d',   // béžové dlaždice s vínovými
     doors: [

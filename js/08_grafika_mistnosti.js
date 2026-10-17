@@ -2078,7 +2078,7 @@ const ROOM_ART = {
       // mozaika na zdi předsíně
       drawRect(L(722, 2, 56, 16), '#5b4a3a');
       for (let k = 0; k < 6; k++) drawRect(L(726 + k * 9, 5, 7, 10), ['#c0392b', '#e0b84f', '#3c7a4a', '#2f6fb0', '#d07a3a', '#7a4a8a'][k]);
-      drawOutlinedText('Prosklená chodba ↑', room.x + 1010, room.y + 60, CONFIG.DOOR_LABEL_FONT, '#ffffff', 'middle');
+      drawOutlinedText('Spojovačka ↑', room.x + 1010, room.y + 60, CONFIG.DOOR_LABEL_FONT, '#ffffff', 'middle');
     },
     // nápis nad kávovarem až po nábytku, ať ho nic nepřekryje
     drawOver(room) {

@@ -12,6 +12,9 @@ playerFaceImg.src = 'obrazky/hrac.png';
 
 // Hlavy učitelů z fotek (python tools/oblicej_na_sprite.py --cil MALA …)
 const FACE_FILES = {
+  ladova: 'obrazky/ladova.png',
+  telingerova: 'obrazky/telingerova.png',
+  kucerova: 'obrazky/kucerova.png',
   damien: 'obrazky/damien.png',
   robin: 'obrazky/robin.png',
   michaelle: 'obrazky/michaelle.png',
@@ -217,6 +220,25 @@ const TEACHERS = {
     room: 'kabinetA216', at: { x: 240 / 300, y: 82 / 260 },   // v rohu stolu do L
     look: { face: 'chvalova', body: '#fafafa', collar: '#e0e0e0', arms: '#fafafa', pants: '#37474f', shoes: '#5d4037' },
     texts: { idle: 'Ahooj… ty jsi Roman? Nebo jste dva? Hihi… Pojď dál, tady je všechno takový… zelený a měkký.' },   // nabízí trávu (17_pribehy.js)
+  },
+  // Ládová, Telingerová a Kučerová ve svých kabinetech (hlavy z malých fotek ze školního webu); hlášky provizorní
+  ladova: {
+    name: 'Ládová', pro: 'Ládovou', color: '#2e5e4e',
+    room: 'kabinetA214', at: { x: 0.68, y: 0.38 },
+    look: { face: 'ladova', body: '#24453a', collar: '#1b3329', arms: '#24453a', pants: '#2b2b33', shoes: '#1b1b1b' },
+    texts: { idle: 'Dobrý den, Romane! Zrovna opravuju písemky, tak jen na chvilku.' },
+  },
+  telingerova: {
+    name: 'Telingerová', pro: 'Telingerovou', color: '#7b3b4a',
+    room: 'kabinetA213', at: { x: 0.45, y: 0.45 },
+    look: { face: 'telingerova', body: '#3b3340', collar: '#e8e0e4', arms: '#3b3340', pants: '#2b2b33', shoes: '#1b1b1b' },
+    texts: { idle: 'Dobrý den, Romane. Copak potřebuješ?' },
+  },
+  kucerova: {
+    name: 'Kučerová', pro: 'Kučerovou', color: '#a0522d',
+    room: 'kabinet5', at: { x: 0.72, y: 0.72 },   // kabinet má s Binkovou
+    look: { face: 'kucerova', body: '#f1ece4', collar: '#d8cfc2', arms: '#f0c8a8', pants: '#3e3a46', shoes: '#1b1b1b' },
+    texts: { idle: 'Ahoj Romane! Paní Binková je zrovna v C109, jestli ji hledáš.' },
   },
   // Ředitelka v ředitelně za stolem (hláška i po chycení u gum – 16_gumy.js)
   reditelka: {
