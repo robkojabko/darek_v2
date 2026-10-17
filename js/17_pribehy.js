@@ -180,7 +180,8 @@ function inventoryItems() {
   for (const name of state.bag) counts.set(name, (counts.get(name) || 0) + 1);
   list.push(...vrahInventory());
   list.push(...pivoInventory());   // recept na pivo (21_pivo.js)
-  list.push(...strunyInventory());   // kleště a struny (22_struny.js)   // klíč, stopy, samolepka, lektvar… (18_vrah.js)
+  list.push(...strunyInventory());   // kleště a struny (22_struny.js)
+  list.push(...tabakInventory());    // tabák pro Křiváčka a sáčky (23_tabak.js)   // klíč, stopy, samolepka, lektvar… (18_vrah.js)
   for (const [name, n] of counts) {
     const f = foodOf(name);
     list.push({ icon: shopItemIcon(name), name, food: name,
@@ -265,13 +266,13 @@ function inventoryEvents(events) {
   for (const ev of events) {
     if (ev.type === 'action') {
       const it = items[state.inventory.sel];
-      if (it && it.food) eatFood(it.food); else state.inventory = null;
+      if (it && it.food) eatFood(it.food); else if (it && it.use) it.use(); else state.inventory = null;
       return;
     }
     if (ev.x == null) continue;
     if (!pointInRect(ev.x, ev.y, INVENTORY_PANEL, 0)) { state.inventory = null; return; }
     const i = items.findIndex((_, k) => pointInRect(ev.x, ev.y, inventoryCard(k), 0));
-    if (i >= 0) { state.inventory.sel = i; if (items[i].food) eatFood(items[i].food); }
+    if (i >= 0) { state.inventory.sel = i; if (items[i].food) eatFood(items[i].food); else if (items[i].use) items[i].use(); }
   }
 }
 
@@ -313,6 +314,7 @@ function updateHunger(dt) {
   const s = state.story, before = s.energy;
   s.energy = Math.max(0, s.energy - HUNGER.DRAIN * dt);
   s.coffee = Math.max(0, s.coffee - dt);
+  updateTabak(dt);
   if (s.high > 0) { s.high = Math.max(0, s.high - dt); if (!s.high) state.toast = { text: '🌿 Hlava se vyčistila – Roman už chodí rovně.', t: CONFIG.TOAST_TIME }; }
   s.hungryToast = (s.hungryToast || 0) - dt;
   if (before >= HUNGER.LOW && s.energy < HUNGER.LOW) {
@@ -328,6 +330,7 @@ function walkSpeedFactor() {
   let k = s.energy <= 0 ? HUNGER.STARVING : s.energy < HUNGER.LOW ? HUNGER.SLOW : 1;
   if (s.coffee > 0) k *= HUNGER.COFFEE_SPEED;
   if (s.high > 0) k *= HIGH.SPEED;
+  k *= tabakSpeed();   // sáček od Křiváčka (23_tabak.js)
   return k;
 }
 // Ukazatel energie pod tlačítkem s hudbou
@@ -337,7 +340,7 @@ function drawEnergyBar() {
   ctx.fillStyle = 'rgba(0, 0, 0, 0.5)'; ctx.fill();
   ctx.font = '11px sans-serif'; ctx.textAlign = 'left'; ctx.textBaseline = 'middle';
   ctx.fillStyle = '#ffffff';
-  ctx.fillText(s.high > 0 ? '🌿' : s.coffee > 0 ? '☕' : '🍔', x + 5, y + h / 2 + 1);
+  ctx.fillText(s.high > 0 ? '🌿' : s.nabito > 0 ? '⚡' : s.coffee > 0 ? '☕' : '🍔', x + 5, y + h / 2 + 1);
   const bx = x + 24, bw = w - 30, k = s.energy / 100;
   roundRectPath(bx, y + 4, bw, h - 8, 4); ctx.fillStyle = '#263238'; ctx.fill();
   if (k > 0) {

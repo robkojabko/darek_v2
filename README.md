@@ -57,6 +57,7 @@ js/19_laborky.js      laborky: schody dolů vedle Málova kabinetu, chodba labor
 js/20_skola.js        Terka s Rauscherem (pomluvy o Holubovi, bubliny), Kabinet tělocvikářů (Láďa), Kabinet Chválová (tráva a kouř)
 js/21_pivo.js         quest Recept na pivo (Kája a Lukášková, Kuba a kamery, Soumarův počítač, tiskárna s letopočty)
 js/22_struny.js       quest Struny pro Málu (kleště od školníka s odpočtem, Binková hlídá, kytary v C202)
+js/23_tabak.js        quest Tabák pro Křiváčka (prohledat A113, sáčky = rychlejší chůze)
 js/15_hlavni.js       update/render podle obrazovky, herní smyčka, START (musí být poslední)
 obrazky/              hlavy 48 × 48 px: hrac.png, mala.png, krivacek.png, rauscher.png, holub.png, soumar.png, lencova.png, vesela.png, mraz.png …
 zvuky/                hudba: pozadí/ = hudba na pozadí (CONFIG.MUSIC_PLAYLIST), „Treplev.mp3“ (v C202 u Kluse), „fotbálek.mp3“ (u fotbálku), Mykyta/ = písničky od Mykyho
@@ -471,6 +472,10 @@ Další učitelé bez úkolu: Křiváček (kabinet2, hlava z `Křiváček oprava
    - Okno s volbami (`openChoice`, `choicePanel`) se natáhne podle počtu možností a funguje i v hlavní hře.
 
 **Texty postav:** učitelé ani studenti neříkají, kudy kam jít („vlevo“, „ve 3. patře“, „naproti WC“). O jiném učiteli řeknou „je u sebe v kabinetu“ nebo název třídy („je v A113“). Místo „dolní šatny“ říkají „ve skříňkách dole“. Hráč ví, kde kdo je.
+
+7. **Tabák pro Křiváčka** (`tabak`, `js/23_tabak.js`): Roman se Křiváčka zeptá „…jestli byste mi prosím nenabil?“. Křiváček nechal tabák v A113. Tam je 10 míst k prohledání (`TABAK.SPOTS`, katedra, skříň, radiátory, umyvadla, lavice). Bublina „Mezerník“ se ukáže jen u místa, u kterého hráč stojí a které ještě neprohledal, jinak nic vidět není. Tabák je v umyvadle na katedře.
+   - Kliknutí na tabák v inventáři cestou: „Jako dal bych si, ale počkám s tím na Křiváčka.“ (`use` u věci v inventáři).
+   - Křiváček za něj dá 2 sáčky („zase až po výplatě“). Sáček v inventáři (`useBag`) zrychlí chůzi o 45 % na 45 s (`story.nabito`, `tabakSpeed` ve `walkSpeedFactor`, u ukazatele energie ⚡). Druhý sáček se nesčítá, jen obnoví čas.
 
 **Studenti** jsou v `TEACHERS` se `student: true` (stejná data jako učitelé).
 
