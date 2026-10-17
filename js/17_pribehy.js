@@ -821,6 +821,7 @@ function updateStory(dt) {
   updateLiliRun(dt);
   updatePivo(dt);   // Kuba odlákává Soumara, Soumar hlídá předsíň (21_pivo.js)
   updateStruny(dt);   // čas na vrácení kleští, Binková hlídá (22_struny.js)
+  updateDamien();     // do holčičí šatny se nesmí (24_damien.js)
   if (state.wires) updateWires(dt);
   // změna místnosti: Treplev v C202, Lili se rozejde, až hráč vyjde z C202
   const id = state.room.id;
@@ -834,6 +835,7 @@ function updateStory(dt) {
 }
 // Otevřené okno příběhu spotřebuje vstupy (hra stojí); true = něco bylo otevřené
 function storyOverlayEvents(events) {
+  if (state.board) return true;   // psaní na tabuli (24_damien.js) – hra stojí
   if (state.inventory) { inventoryEvents(events); return true; }
   if (state.choice && !vrahOn()) { choiceEvents(events); return true; }   // volba v hlavní hře (Chválová)
   if (state.giveMenu) { giveMenuEvents(events); return true; }

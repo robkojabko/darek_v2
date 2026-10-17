@@ -12,6 +12,9 @@ playerFaceImg.src = 'obrazky/hrac.png';
 
 // Hlavy učitelů z fotek (python tools/oblicej_na_sprite.py --cil MALA …)
 const FACE_FILES = {
+  damien: 'obrazky/damien.png',
+  robin: 'obrazky/robin.png',
+  michaelle: 'obrazky/michaelle.png',
   mala: 'obrazky/mala.png',
   krivacek: 'obrazky/krivacek.png',
   rauscher: 'obrazky/rauscher.png',

@@ -28,6 +28,7 @@ function resetGame(progress) {
   applyStory();   // Lili u Kluse nebo u Bečváře podle postupu (17_pribehy.js)
   applyPivo();    // Soumar u kabinetu nebo odlákaný Kubou (21_pivo.js)
   applyStruny();  // kleště se po načtení vrací školníkovi (22_struny.js)
+  applyDamien();  // Damien a Michaelle doma, nebo už v holčičí šatně (24_damien.js)
   applyVrah(progress);   // režim Vrah: postavy na místa z příběhu, jinak domů (18_vrah.js)
   input.events.length = 0;
   if (state.mode === 'vrah') vrahStart(); else enterRoom(CONFIG.START_ROOM);

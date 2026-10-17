@@ -786,6 +786,7 @@ function renderGame() {
 
   if (!vrahHidden()) drawPlayer(state.player);   // schovaný v laborce: jen obrys (18_vrah.js)
   drawGossipBubble();   // Terka a Rauscher pomlouvají Holuba (20_skola.js) – nad hráčem, ať je bublina čitelná
+  drawMichaelleChat();  // Michaelle a Švecová si povídají (24_damien.js)
 
   drawEffects();
   drawTalkHint();

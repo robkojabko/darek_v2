@@ -58,6 +58,7 @@ js/20_skola.js        Terka s Rauscherem (pomluvy o Holubovi, bubliny), Kabinet 
 js/21_pivo.js         quest Recept na pivo (Kája a Lukášková, Kuba a kamery, Soumarův počítač, tiskárna s letopočty)
 js/22_struny.js       quest Struny pro Málu (kleště od školníka s odpočtem, Binková hlídá, kytary v C202)
 js/23_tabak.js        quest Tabák pro Křiváčka (prohledat A113, sáčky = rychlejší chůze)
+js/24_damien.js       studenti Damien, Robin, Michaelle a quest s hádankou na tabuli
 js/15_hlavni.js       update/render podle obrazovky, herní smyčka, START (musí být poslední)
 obrazky/              hlavy 48 × 48 px: hrac.png, mala.png, krivacek.png, rauscher.png, holub.png, soumar.png, lencova.png, vesela.png, mraz.png …
 zvuky/                hudba: pozadí/ = hudba na pozadí (CONFIG.MUSIC_PLAYLIST), „Treplev.mp3“ (v C202 u Kluse), „fotbálek.mp3“ (u fotbálku), Mykyta/ = písničky od Mykyho
@@ -476,6 +477,10 @@ Další učitelé bez úkolu: Křiváček (kabinet2, hlava z `Křiváček oprava
 7. **Tabák pro Křiváčka** (`tabak`, `js/23_tabak.js`): Roman se Křiváčka zeptá „…jestli byste mi prosím nenabil?“. Křiváček nechal tabák v A113. Tam je 10 míst k prohledání (`TABAK.SPOTS`, katedra, skříň, radiátory, umyvadla, lavice). Bublina „Mezerník“ se ukáže jen u místa, u kterého hráč stojí a které ještě neprohledal, jinak nic vidět není. Tabák je v umyvadle na katedře.
    - Kliknutí na tabák v inventáři cestou: „Jako dal bych si, ale počkám s tím na Křiváčka.“ (`use` u věci v inventáři).
    - Křiváček za něj dá 2 sáčky („zase až po výplatě“). Sáček v inventáři (`useBag`) zrychlí chůzi o 45 % na 45 s (`story.nabito`, `tabakSpeed` ve `walkSpeedFactor`, u ukazatele energie ⚡). Druhý sáček se nesčítá, jen obnoví čas.
+
+8. **Damien a Michaelle** (`damien`, `js/24_damien.js`): Damien stojí v hale před šatnou kluků. Chce mluvit s Michaelle (už na školu nechodí, přišla se podívat, pracuje v květinářství). Ta je v C308 vedle Švecové a povídají si (bubliny `MICHAELLE_CHAT`, `drawMichaelleChat`). Když jí to Roman řekne, Švecová dá hádanku a odpověď se píše na „tabuli“ – opravdové textové pole přes hru (`openBoard`, na mobilu vyskočí klávesnice, psaní neovládá hru). Správně je jen „vířivka“ (velké V a tečka nevadí, „virivka“ nebo „vyřivka“ je pravopisná chyba, `boardVerdict`). Dva pokusy, pak se quest začíná znovu u Damiena – každé kolo má jiné hlášky Damiena, Michaelle a Švecové i jinou hádanku (`DAMIEN_ASK`, `MICHAELLE_TOLD`, `DAMIEN_RIDDLES`, `MICHAELLE_FAIL`, `story.damien.round`).
+   - Po správné odpovědi Michaelle dojde za Damienem a oba odejdou do holčičí šatny. Od chvíle, kdy Michaelle vyrazí, se do šatny nedá vejít ani jedním vchodem (`doorBlocked`, z haly i z tělocvičny) – Roman řekne „Asi bych tam neměl chodit, třeba probírají něco důležitého.“ Kdyby tam byl, vystrčí ho to do haly (`kickFromSatna`).
+   - **Robin** stojí v A302 s Jelínkem. Hlavy jsou z `fotky/Damien.jpg`, `Robin.jpg`, `Michaelle .jpg` (příkazy na konci `tools/ucitele.sh`).
 
 **Studenti** jsou v `TEACHERS` se `student: true` (stejná data jako učitelé).
 
