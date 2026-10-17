@@ -704,7 +704,7 @@ TEACHERS.skolnik = {
   name: 'Školník', pro: 'školníka', color: '#455a64',
   room: 'satnyDole', at: { x: 0.3, y: 0.75 },
   look: { face: 'skolnik', body: '#2f6fb5', collar: '#255a94', arms: '#2f6fb5', pants: '#263238', shoes: '#1b1b1b', hair: '#3e3e46', skin: '#e8b996' },   // hlava z fotky (modré triko jako na ní)
-  texts: { idle: 'Dobrý den, mladej. Nešlapej mi po chodbách.' },
+  texts: { idle: 'Ta ředitelka mi zakázala brát si vás z hodin, teda až na tělák.' },
 };
 TEACHERS.uklizecka = {
   name: 'Uklízečka', pro: 'uklízečku', color: '#00838f',

@@ -147,6 +147,10 @@ Spojení dílů:
   - trup má 24 px s rameny, ruce mají dlaně a houpou se, nohy mají 14 px;
   - kolize je čtverec 32 px u nohou (`PLAYER_SIZE`).
 
+**Kabinet 2 (Křiváček)** je podle `fotky/kabinet křiváček.jpg`: místnost je 460 × 420, vlevo je vysoké rozšíření a kout vpravo nahoře je plná zeď (`void` s `edges: ['left', 'bottom']`, kreslí `drawVoidWalls`). Dveře do západní chodby jsou nahoře vpravo (`local`, na spodní hraně koutu), dole vpravo jsou dveře do A114 (v A114 nahoře vpravo). V rozšíření je velký stůl se dvěma počítači (`monitor`) a dvěma židlemi nahoře a dole, knihovna je na pravé zdi.
+
+**Zvonek** ve vstupní chodbě je zvonek do kanceláře: ozve se Vozábalová „Romane, přestaň na mě zvonit.“ (`BELL.lines`). **Školník** mimo questy říká „Ta ředitelka mi zakázala brát si vás z hodin, teda až na tělák.“
+
 **WC kluci v přízemí** (`wcKluci0`, u Mály) je podle `fotky/záchody u mály .jpg`: tři kabinky u levé zdi s dvířky doprava (`stall` s `facing: 'right'`), pod nimi zídka (`wcwall`), tři mušle na pravé zdi (`urinal`), dveře do západní chodby dole na levé zdi a dvě umyvadla u spodní zdi vpravo (`sink` s `wall: 'bottom'`). Otočený nábytek kreslí `drawTurned`.
 
 **A107** je podle `fotky/A107.jpg`, focené ode dveří vpravo nahoře pohledem podél místnosti doleva. Je to jazyková učebna:

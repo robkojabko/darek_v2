@@ -94,7 +94,7 @@ const TEACHERS = {
   krivacek: {
     name: 'Křiváček',
     pro: 'Křiváčka',
-    room: 'kabinet2', at: { x: 0.65, y: 0.5 },
+    room: 'kabinet2', at: { x: 348 / 460, y: 290 / 420 },
     color: '#3b2f4f',
     look: { face: 'krivacek', body: '#3b2f4f', collar: '#2a2a2e', arms: '#3b2f4f', pants: '#22222a', shoes: '#111111' },
     texts: {

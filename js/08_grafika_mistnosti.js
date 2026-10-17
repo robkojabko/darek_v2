@@ -1046,6 +1046,13 @@ const OBSTACLE_ART = {
     drawRect({ x: r.x + 3, y: r.y + r.h - 6, w: r.w - 6, h: 6 }, o.door || '#4a7fc0');
     drawOutline(r, 'rgba(0, 0, 0, 0.45)');
   },
+  // počítač na stole shora: podstavec, monitor obrazovkou doprava, klávesnice
+  monitor(r) {
+    drawRect({ x: r.x + 1, y: r.y + r.h / 2 - 4, w: 5, h: 8 }, '#37474f');            // podstavec
+    drawRect({ x: r.x + 5, y: r.y, w: 5, h: r.h }, '#212121');                        // monitor
+    drawRect({ x: r.x + 9, y: r.y + 2, w: 2, h: r.h - 4 }, '#64b5f6');                // svítící obrazovka
+    drawRect({ x: r.x + 13, y: r.y + 5, w: 3, h: r.h - 10 }, '#cfd8dc');              // klávesnice
+  },
   // pisoár (mušle) na pravé zdi: bílá mísa, splachovací trubka u zdi
   urinal(r) {
     drawShadow(r, SHADOW_LOW);
@@ -2341,7 +2348,10 @@ const ROOM_ART = {
     },
   },
   kabinet: makeKabinetArt('top'),   // Málův kabinet: okno na horní zdi
-  kabinet2: makeKabinetArt('left'),
+  kabinet2: (() => {   // Křiváčkův kabinet: kout vpravo nahoře je zeď (void)
+    const base = makeKabinetArt('left');
+    return { door: base.door, draw(room) { base.draw(room); for (const o of room.obstacles.filter((ob) => ob.kind === 'void')) drawVoidWalls(room, o); } };
+  })(),
   kabinet3: makeKabinetArt('bottom'),
   kabinet4: makeKabinetArt('left'),
   kabinet5: makeKabinetArt('bottom'),

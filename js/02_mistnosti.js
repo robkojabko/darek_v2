@@ -62,10 +62,9 @@ function classroomDesksSide(face, columns, rows, h = 60) {
 const BELL = {
   part: 'vstup',
   local: { x: 12, y: 220, w: 10, h: 18 },   // px od rohu vstupní chodby
+  // zvonek do kanceláře – ozve se Vozábalová
   lines: [
-    'Crrrrr! Zvoní na hodinu – honem do třídy!',
-    'Crrrrr! Konec přestávky.',
-    'Crrrrr! Kdo to zvoní? Přece ty!',
+    'Romane, přestaň na mě zvonit.',
   ],
 };
 
@@ -284,6 +283,7 @@ const ROOMS = {
     floorColor: '#b49a7c',
     doors: [
       { side: 'right', at: 0.5, to: 'chodba' },  // západní chodba
+      { side: 'top', at: 0.85, to: 'kabinet2' },   // nahoře vpravo do Křiváčkova kabinetu
     ],
     obstacles: [
       { kind: 'labbench', at: { x: 260 / 520, y: 40 / 400 },  w: 200, h: 24, sinks: [0.88] },              // katedra
@@ -336,17 +336,26 @@ const ROOMS = {
     ],
   },
 
+  // Křiváčkův kabinet podle „kabinet křiváček.jpg“: vlevo vysoké rozšíření (kout vpravo nahoře
+  // je plná zeď – void), dveře do chodby nahoře vpravo, dole vpravo dveře do A114, v rozšíření
+  // velký stůl se dvěma počítači a dvěma židlemi, knihovna na pravé zdi
   kabinet2: {
     name: 'Kabinet 2',
     where: 'v kabinetu 2',
-    w: 320, h: 260,
+    w: 460, h: 420,
     floorColor: '#8a5c4c',
     doors: [
-      { side: 'top', at: 0.5, to: 'chodba' },  // nad ním výběžek západní chodby
+      { side: 'top', local: { x: 402 - 28, y: 160, w: 56, h: 20 }, to: 'chodba' },   // nahoře vpravo (původní místnost)
+      { side: 'bottom', at: 0.87, to: 'a114' },                                     // dole vpravo do A114
     ],
     obstacles: [
-      { kind: 'shelf', at: { x: 0.5, y: 0.9 }, w: 150, h: 20 },
-      { kind: 'desk',  at: { x: 0.3, y: 0.5 }, w: 80,  h: 40 },
+      { kind: 'void', at: { x: 345.5 / 460, y: 90 / 420 }, w: 229, h: 180, edges: ['left', 'bottom'] },   // kout vpravo nahoře
+      { kind: 'desk', at: { x: 55 / 460, y: 236 / 420 }, w: 66, h: 172, chairs: false },   // velký stůl v rozšíření
+      { kind: 'monitor', at: { x: 38 / 460, y: 172 / 420 }, w: 16, h: 30 },
+      { kind: 'monitor', at: { x: 38 / 460, y: 300 / 420 }, w: 16, h: 30 },
+      { kind: 'chair', at: { x: 55 / 460, y: 128 / 420 }, w: 22, h: 22 },
+      { kind: 'chair', at: { x: 55 / 460, y: 344 / 420 }, w: 22, h: 22 },
+      { kind: 'shelf', at: { x: 430 / 460, y: 279 / 420 }, w: 20, h: 130 },   // knihovna na pravé zdi
     ],
   },
   kabinet3: {

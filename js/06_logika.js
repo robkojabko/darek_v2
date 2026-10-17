@@ -137,7 +137,7 @@ function ringBell() {
   const ring = [];
   for (let k = 0; k < 10; k++) ring.push([k % 2 ? 1568 : 1760, k * 0.06, 0.05]);
   playSound(ring);
-  state.dialog = { name: '🔔 Zvonek', color: '#d4a73a', text: lines[i] };
+  state.dialog = { name: '🔔 Vozábalová (z kanceláře)', color: TEACHERS.vozabalova.color, text: lines[i] };   // zvonek do kanceláře
 }
 
 // Učitel, se kterým může hráč právě mluvit
