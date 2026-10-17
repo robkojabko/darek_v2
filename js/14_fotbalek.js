@@ -56,6 +56,7 @@ function foosFigures(rod, p) {
 }
 
 // --- průběh ---
+const FOOS_QUIT_BTN = { x: 12, y: 14, w: 56, h: 44 };   // vlevo nahoře (vpravo je zvuk)
 function openFoosball() {
   state.foos = { phase: 'menu', menuSel: 0, keys: [], level: null, fingers: {} };
   input.events.length = 0;
@@ -293,6 +294,8 @@ function updateFoosball(dt) {
     return;
   }
   if (keys.includes('Escape')) { f.confirmQuit = true; return; }
+  // tlačítko ✕ vlevo nahoře (na mobilu jediná cesta ven ze zápasu)
+  if (events.some((ev) => ev.x != null && pointInRect(ev.x, ev.y, FOOS_QUIT_BTN, 6))) { f.confirmQuit = true; f.fingers = {}; return; }
 
   // --- zápas ---
   const two = f.level.id === 'two';
@@ -422,6 +425,13 @@ function renderFoosball() {
       ? (two ? 'Každý táhne prstem na své půlce · kope se samo' : 'Táhni prstem nahoru a dolů · kope se samo')
       : (two ? 'Červení: W S + mezerník · Modří: šipky + Enter · Esc = konec' : 'Šipky nahoru/dolů = tyče · mezerník = kop · Esc = konec');
     drawOutlinedText(hint, W / 2, 582, 'bold 13px sans-serif', '#ffffff', 'middle');
+    if (f.phase === 'play' || f.phase === 'goal') {   // ✕ = ukončit zápas (hlavně pro mobil)
+      const q = FOOS_QUIT_BTN;
+      roundRectPath(q.x, q.y, q.w, q.h, 10);
+      ctx.fillStyle = 'rgba(0, 0, 0, 0.6)'; ctx.fill();
+      ctx.strokeStyle = 'rgba(255, 255, 255, 0.5)'; ctx.lineWidth = 1.5; ctx.stroke();
+      drawOutlinedText('✕', q.x + q.w / 2, q.y + q.h / 2 + 1, 'bold 24px sans-serif', '#ffffff', 'middle');
+    }
   }
   if (f.phase === 'goal') {
     drawOutlinedText('GÓÓÓL!', W / 2, F.y + F.h / 2 - 20, 'bold 56px sans-serif', '#ffd54a', 'middle');

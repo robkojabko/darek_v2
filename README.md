@@ -503,6 +503,8 @@ Další učitelé bez úkolu: Křiváček (kabinet2, hlava z `Křiváček oprava
 
 **Zita a Emma** před bufetem: když na jednu z nich Roman promluví, zahrají rozhovor – Zita si stěžuje na práci v kavárně, Emma odpovídá (`ZITA_EMMA` v `js/27_rozhovory.js`, pokaždé další z 6). Půjčení na párek pro Kubu má přednost.
 
+**Fotbálek na mobilu:** během zápasu je vlevo nahoře tlačítko ✕ (`FOOS_QUIT_BTN`), otevře „Ukončit zápas?“ jako Esc. Vpravo nahoře je tlačítko zvuku, proto vlevo. Šachy mají vlastní tlačítko „Vzdát“.
+
 **Studenti** jsou v `TEACHERS` se `student: true` (stejná data jako učitelé).
 
 - **Kuba Vozábal** (`vozabal`) chodí po chodbách celé školy, do tříd nechodí. Jde po trase `route` tam a zpátky rychlostí 70 px/s, celé kolečko trvá asi 9 minut.
