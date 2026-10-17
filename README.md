@@ -496,7 +496,8 @@ Další učitelé bez úkolu: Křiváček (kabinet2, hlava z `Křiváček oprava
 **Mráz** (dozor na parkovišti) říká: „Můj poslední dozor a pak tu nebudu dva měsíce, tak se snad nic nestane.“
 
 10. **Teplota pro Láďu** (`teplota`, `js/26_teplota.js`): Láďa chce vědět, kolik je venku stupňů. Teploměr půjčí školník. Ve venkovní učebně nebo na parkovišti se mezerníkem změří teplota (bublina „Mezerník“ je přímo u hráče, `measureSpot`), je náhodná od −8 do 28 °C. Láďa na jakoukoli teplotu řekne „Jo, tak to dneska půjdeme na těláku ven.“
-   - **Školník** (`skolnikMain`): když má hráč rozdělané kleště (struny pro Málu – půjčit, nebo vrátit) a zároveň potřebuje teploměr, vybere si v nabídce. Když jen jedno, dostane to rovnou. Ověřené cesty: jen teploměr, jen kleště, obojí (výběr teploměru i kleští), vrácení kleští + teploměr, nic.
+   - Roman teplotu řekne česky správně (`stupne`: „je 1 stupeň“, „jsou 3 stupně“, „je 5 stupňů“, „jsou minus 2 stupně“, „je nula stupňů“). Teploměr se dá školníkovi vrátit kdykoli, i před tím, než to Roman řekne Láďovi (`returnThermo`, `teplota.has`). Když ho vrátí dřív, než změřil, musí si ho půjčit znovu.
+   - **Školník** (`skolnikMain`): když má hráč rozdělané kleště (struny pro Málu – půjčit, nebo vrátit) a zároveň potřebuje teploměr, vybere si v nabídce. Když jen jedno, dostane to rovnou. Ověřené cesty: jen teploměr, jen kleště, obojí (výběr teploměru i kleští), vrácení kleští + teploměr, vrácení teploměru (před Láďou i po něm, i spolu s kleštěmi), nic.
    - Hlášky Telingerové, Ládové a Kučerové jsou od uživatele (matika a Metoděj, sloh v pondělí, Racek k maturitě).
 
 **Studenti** jsou v `TEACHERS` se `student: true` (stejná data jako učitelé).
