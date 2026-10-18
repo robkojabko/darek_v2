@@ -33,7 +33,14 @@ function resetGame(progress) {
   input.events.length = 0;
   if (state.mode === 'vrah') vrahStart(); else enterRoom(CONFIG.START_ROOM);
   progressWatch.sig = questSignature();
+  progressWatch.bagSig = `${state.money}|${state.bag.join(',')}`;
+  progressWatch.nextSave = state.time;
 }
+
+// při zavření / přepnutí stránky (hlavně mobil) uložit, ať se nic neztratí
+const saveOnLeave = () => { if (state.screen === 'playing') saveProgress(); };
+window.addEventListener('pagehide', saveOnLeave);
+document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'hidden') saveOnLeave(); });
 
 function setScreen(screen) {
   state.screen = screen;
@@ -81,6 +88,11 @@ function watchProgress() {
     w.sig = sig;
     saveProgress();
   }
+  // peníze a věci se mění i mimo úkoly (Mála půjčuje, bufet, šachy…) – uložit hned
+  const bagSig = `${state.money}|${state.bag.join(',')}`;
+  if (bagSig !== w.bagSig) { w.bagSig = bagSig; saveProgress(); }
+  // a pro jistotu průběžně každých 5 s (energie, rozdělané příběhy…)
+  if (!(w.nextSave > state.time - 5)) { w.nextSave = state.time; saveProgress(); }
   // závěr až po zavření posledního poděkování
   if (questsDone() >= activeQuests().length && !state.dialog && !state.scene && !state.choice && !state.rhythm && !state.quiz && !state.gameOver && !state.transition && !state.giveMenu && !state.wires) startEnd();
 }

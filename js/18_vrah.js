@@ -148,6 +148,7 @@ function sceneNext() {
   }
   state.scene = null;
   if (sc.onEnd) sc.onEnd();
+  if (state.screen === 'playing') saveProgress();   // po každém rozhovoru uložit (půjčky od Mály, hádanky…)
   return !!state.dialog;
 }
 function updateScene(dt) {

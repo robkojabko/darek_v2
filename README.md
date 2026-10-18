@@ -505,6 +505,8 @@ Další učitelé bez úkolu: Křiváček (kabinet2, hlava z `Křiváček oprava
 
 **Fotbálek na mobilu:** během zápasu je vlevo nahoře tlačítko ✕ (`FOOS_QUIT_BTN`), otevře „Ukončit zápas?“ jako Esc. Vpravo nahoře je tlačítko zvuku, proto vlevo. Šachy mají vlastní tlačítko „Vzdát“.
 
+**Ukládání:** hra se uloží při změně úkolu, při každé změně peněz nebo věcí v batohu (`watchProgress`, `bagSig`), po každém rozhovoru (`sceneNext`), průběžně každých 5 s a při zavření nebo přepnutí stránky (`pagehide`, `visibilitychange`). Dřív se ukládalo jen při změně úkolu, takže půjčky od Mály po „Pokračovat“ zmizely.
+
 **Studenti** jsou v `TEACHERS` se `student: true` (stejná data jako učitelé).
 
 - **Kuba Vozábal** (`vozabal`) chodí po chodbách celé školy, do tříd nechodí. Jde po trase `route` tam a zpátky rychlostí 70 px/s, celé kolečko trvá asi 9 minut.
