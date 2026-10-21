@@ -13,7 +13,7 @@
 // Na zkoušení jde adresa přepsat v adrese stránky: index.html?mpdb=http://localhost:8001
 // =====================================================================
 const MP = {
-  DB_URL: 'VLOŽ_ADRESU_DATABÁZE',   // Firebase konzole → Realtime Database → adresa nahoře (https://…firebasedatabase.app)
+  DB_URL: 'https://darek-online-default-rtdb.europe-west1.firebasedatabase.app',   // Firebase konzole → Realtime Database → adresa nahoře (https://…firebasedatabase.app)
   PATH: 'hraci',
   ON_KEY: 'hra_darek_online_v1',
   SEND_EVERY: 0.15,   // s – nejčastěji takhle se posílá vlastní poloha
