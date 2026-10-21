@@ -53,6 +53,7 @@ function render() {
   drawSpeedrunTimer(); // časovač ve hře (jen speedrun)
   drawMusicMenu();     // seznam písniček (P)
   drawModePick();      // výběr režimu při nové hře (úvod i závěr)
+  drawLeaderboard();   // okno žebříčku
 }
 
 // =====================================================================

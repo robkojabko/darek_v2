@@ -144,7 +144,6 @@ Object.assign(SPEEDRUN, {
   FIREBASE: { projectId: 'darek-30b0c', apiKey: 'AIzaSyACbnxZ7k6KKPNNbJAVsIgglxPY9qF6GBw' },   // Firebase konzole → ⚙ Nastavení projektu → Vaše aplikace
   NAME_KEY: 'hra_darek_jmeno_v1',
   NAME_MAX: 16,
-  LB_BUTTON: { x: 8, y: 36, w: 170, h: 26 },   // na úvodní obrazovce pod tlačítkem hudby
   LB_PANEL: { x: 130, y: 60, w: 540, h: 440 },
   LB_ROWS: 10,
 });
@@ -236,24 +235,6 @@ window.addEventListener('keydown', (e) => {
   else if (KEYMAP.left.includes(e.code)) state.lb.mode = 'hra';
   else if (KEYMAP.right.includes(e.code)) state.lb.mode = 'vrah';
 });
-// Ťuknutí na tlačítko žebříčku na úvodu vyřadí z fronty, aby se nepočítalo jinde
-function takeLeaderboardTaps() {
-  if (!leaderboardReady() || state.screen !== 'title' || state.modePick || state.musicMenu || state.lb) return;
-  input.events = input.events.filter((ev) => {
-    const hit = ev.type === 'tap' && ev.x !== null && pointInRect(ev.x, ev.y, SPEEDRUN.LB_BUTTON, 4);
-    if (hit) openLeaderboard('hra');
-    return !hit;
-  });
-}
-function drawLeaderboardButton() {
-  if (!leaderboardReady() || state.screen !== 'title' || state.modePick || state.lb) return;
-  const b = SPEEDRUN.LB_BUTTON;
-  roundRectPath(b.x, b.y, b.w, b.h, 6);
-  ctx.fillStyle = 'rgba(0, 0, 0, 0.45)'; ctx.fill();
-  ctx.font = '13px sans-serif'; ctx.textAlign = 'left'; ctx.textBaseline = 'middle';
-  ctx.fillStyle = '#ffffff';
-  ctx.fillText('🏆 Žebříček', b.x + 8, b.y + b.h / 2 + 1);
-}
 function drawLeaderboard() {
   const lb = state.lb;
   if (!lb) return;

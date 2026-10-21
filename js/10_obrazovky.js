@@ -119,12 +119,15 @@ function getButtons() {
       vrah[0].rect = { x: CONFIG.WIDTH / 2 - 286, y: vy, w: 280, h: 44 };
       vrah[1].rect = { x: CONFIG.WIDTH / 2 + 6, y: vy, w: 220, h: 44 };
     }
-    if (!state.savedGame) return [btn('new', 'Hrát', y, true), ...vrah];
+    // pod tím žebříček (28_speedrun.js) – jen když je nastavený Firebase
+    const lb = leaderboardReady() ? [btn('leaderboard', '🏆 Žebříček', vy + 44 + 12, false)] : [];
+    if (lb.length) { lb[0].rect = { x: CONFIG.WIDTH / 2 - 170, y: vy + 44 + 12, w: 340, h: 44 }; }
+    if (!state.savedGame) return [btn('new', 'Hrát', y, true), ...vrah, ...lb];
     const done = Object.values(state.savedGame.quests).filter((st) => st === 'done').length;
     const b = [btn('continue', `Pokračovat (${done}/${activeQuests(state.savedGame.story || newStory()).length})`, y, true), btn('new', 'Nová hra', y, false)];
     b[0].rect.x = CONFIG.WIDTH / 2 - CONFIG.BUTTON_W - 6;
     b[1].rect.x = CONFIG.WIDTH / 2 + 6;
-    return b.concat(vrah);
+    return b.concat(vrah, lb);
   }
   if (state.screen === 'end') {   // znovu stejný režim, nebo zpátky na úvod (výběr hry / Vraha)
     const b = [btn('restart', 'Hrát znovu', 400, true), btn('title', 'Na úvod', 400, false)];
@@ -145,6 +148,7 @@ function pressButton(id) {
   else if (id === 'vrahNew') pickMode((sp) => startPlaying(null, 'vrah', sp));   // Vrah od začátku (uložení se smaže)
   else if (id === 'restart') { const mode = state.mode; pickMode((sp) => startPlaying(null, mode, sp)); }   // znovu stejný režim
   else if (id === 'title') goToTitle();
+  else if (id === 'leaderboard') openLeaderboard('hra');   // žebříček z hlavního menu (28_speedrun.js)
   else if (id === 'score') scoreButtonPress();   // odeslání času do žebříčku (28_speedrun.js)
   else pickMode((sp) => startPlaying(null, null, sp)); // 'new': výběr normální hra / speedrun
 }
