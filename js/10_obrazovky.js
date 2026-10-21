@@ -130,6 +130,10 @@ function getButtons() {
     const b = [btn('restart', 'Hrát znovu', 400, true), btn('title', 'Na úvod', 400, false)];
     b[0].rect.x = CONFIG.WIDTH / 2 - CONFIG.BUTTON_W - 6;
     b[1].rect.x = CONFIG.WIDTH / 2 + 6;
+    if (state.speedrun && state.speedrun.done && leaderboardReady()) {   // speedrun: třetí tlačítko – odeslat čas / žebříček (28_speedrun.js)
+      b.push(btn('score', scoreButtonLabel(), 400, false));
+      b.forEach((x, i) => { x.rect.x = 30 + i * (CONFIG.BUTTON_W + 10); });
+    }
     return b;
   }
   return [];
@@ -141,6 +145,7 @@ function pressButton(id) {
   else if (id === 'vrahNew') pickMode((sp) => startPlaying(null, 'vrah', sp));   // Vrah od začátku (uložení se smaže)
   else if (id === 'restart') { const mode = state.mode; pickMode((sp) => startPlaying(null, mode, sp)); }   // znovu stejný režim
   else if (id === 'title') goToTitle();
+  else if (id === 'score') scoreButtonPress();   // odeslání času do žebříčku (28_speedrun.js)
   else pickMode((sp) => startPlaying(null, null, sp)); // 'new': výběr normální hra / speedrun
 }
 
@@ -148,6 +153,7 @@ function pressButton(id) {
 function updateMenu() {
   const events = input.events.splice(0);
   if (state.modePick) { modePickEvents(events); return; }   // výběr režimu (28_speedrun.js)
+  if (state.lb) { leaderboardEvents(events); return; }       // žebříček (28_speedrun.js)
   if (state.musicMenu) { musicMenuEvents(events); return; }   // seznam hudby přes úvod
   if (state.screen === 'end' && state.endTime < CONFIG.END_INPUT_DELAY) return;
   const buttons = getButtons();
