@@ -784,6 +784,7 @@ function renderGame() {
   drawSmokeLeak();   // kouř z kabinetu Chválové (20_skola.js)
   drawTeachers();
 
+  drawRemotePlayers();   // ostatní online hráči ve stejné místnosti (29_multiplayer.js)
   if (!vrahHidden()) drawPlayer(state.player);   // schovaný v laborce: jen obrys (18_vrah.js)
   drawGossipBubble();   // Terka a Rauscher pomlouvají Holuba (20_skola.js) – nad hráčem, ať je bublina čitelná
   drawMicheleChat();  // Michele a Švecová si povídají (24_damien.js)

@@ -62,6 +62,8 @@ js/24_damien.js       studenti Damien, Robin, Michele a quest s hádankou na tab
 js/25_robin.js        miniquest HTML pro Robina (editor s náhledem, Jelínek radí za peníze)
 js/26_teplota.js      miniquest Teplota pro Láďu a výběr u školníka (kleště / teploměr)
 js/27_rozhovory.js    drobné rozhovory postav (Zita a Emma)
+js/28_speedrun.js     režim Speedrun (časovač) a žebříček přes Firebase Firestore (od kamaráda)
+js/29_multiplayer.js  online hráči: kdo má zapnuté Online, vidí ostatní ve stejné místnosti (Firebase Realtime Database)
 js/15_hlavni.js       update/render podle obrazovky, herní smyčka, START (musí být poslední)
 obrazky/              hlavy 48 × 48 px: hrac.png, mala.png, krivacek.png, rauscher.png, holub.png, soumar.png, lencova.png, vesela.png, mraz.png …
 zvuky/                hudba: pozadí/ = hudba na pozadí (CONFIG.MUSIC_PLAYLIST), „Treplev.mp3“ (v C202 u Kluse), „fotbálek.mp3“ (u fotbálku), Mykyta/ = písničky od Mykyho
@@ -514,6 +516,18 @@ Další učitelé bez úkolu: Křiváček (kabinet2, hlava z `Křiváček oprava
   - Hlava je z vyříznuté fotky s bílým pozadím `fotky/Kuba Vozábal.png` (`obrazky/vozabal.png`). Příkaz je v `tools/ucitele.sh` (volba `--bile-pozadi`). Postava bez fotky má kreslený obličej (`look.hair`).
   - Běžná hláška (od uživatele): „Kámo, bacha, Netanjahu je všude.“ V questu s pivem má vlastní rozhovory (`kubaTalk`).
 - **Trasy pohyblivých postav** se počítají hledáním cesty (BFS po mřížce 10 px, obdélník 34 × 44 + 2 px okraj proti `state.solids`), pak se zjednoduší a zapíšou napevno. Po změně nábytku na trase je potřeba přepočítat a zkontrolovat (test „Rauscher/Kuba na trase: 0 kolizí“).
+
+## Multiplayer (`js/29_multiplayer.js`)
+
+Uživatel chce postupně tři kroky: **1. hráči se vidí** (hotové), **2. chat / smajlíky** (spíš hotové hlášky než volné psaní, hrají to spolužáci), **3. společný svět** (společné úkoly, šachy a fotbálek proti sobě online).
+
+- **Krok 1:** na úvodu je vlevo nahoře pod hudbou přepínač „👥 Online: ZAP/VYP“ (`MP.BUTTON`, pamatuje se v `MP.ON_KEY`). Při prvním zapnutí se zeptá na jméno (stejné jako do žebříčku, `SPEEDRUN.NAME_KEY`).
+  - Každý hraje svou hru. Sdílí se jen místnost, poloha (px od rohu místnosti) a co hráč dělá (`a`: šachy, fotbálek, koš, rozhovor, obchod → ikonka u jména).
+  - Ostatní se kreslí jako Roman s jinou barvou vesty (`MP.COLORS` podle id) a jménem nad hlavou (`drawRemotePlayers` v `renderGame` před hráčem). V pohledu zepředu (ulice, bufet) se nekreslí. Postavička plynule dojede na poslední polohu (`MP.LERP`) a u toho jde.
+  - Ve hře je pod energií „👥 Online: 3 hráči (1 tady)“ (`drawOnlineBadge`).
+- **Databáze:** Firebase Realtime Database přes REST bez knihoven: vlastní záznam `hraci/<id>` = `{ n, r, x, y, a?, t }` se posílá PUTem (nejčastěji po 0,15 s, když stojí, jednou za 3 s), změny ostatních chodí proudem `EventSource`. `t` je čas serveru (`{".sv": "timestamp"}`). Kdo se neozval 12 s, není vidět, záznamy starší než 2 minuty smaže kdokoli online. Na úvodu, po vypnutí a při zavření stránky se vlastní záznam smaže.
+  - Adresa je v `MP.DB_URL`. Dokud tam je `VLOŽ_…`, přepínač Online se neukáže. Pravidla databáze jsou v `tools/firebase_pravidla_multiplayer.json` (vložit do Firebase konzole → Realtime Database → Pravidla).
+  - **Test bez Firebase:** falešná databáze v Pythonu (REST + proud) a `index.html?mpdb=http://127.0.0.1:8001`. Dvě hry v headless Chrome přes DevTools protokol (`pip install websocket-client`) – vidí se, chůze, šachy, odchod do jiné místnosti, na úvod i vypnutí prošly.
 
 ## Co je ještě v plánu
 

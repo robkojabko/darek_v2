@@ -1,0 +1,18 @@
+{
+  "rules": {
+    "hraci": {
+      ".read": true,
+      "$id": {
+        ".write": "$id.length <= 24",
+        ".validate": "newData.hasChildren(['n', 'r', 'x', 'y', 't'])",
+        "n": { ".validate": "newData.isString() && newData.val().length >= 1 && newData.val().length <= 16" },
+        "r": { ".validate": "newData.isString() && newData.val().length <= 40" },
+        "x": { ".validate": "newData.isNumber()" },
+        "y": { ".validate": "newData.isNumber()" },
+        "a": { ".validate": "newData.isString() && newData.val().length <= 12" },
+        "t": { ".validate": "newData.val() == now" },
+        "$other": { ".validate": false }
+      }
+    }
+  }
+}
