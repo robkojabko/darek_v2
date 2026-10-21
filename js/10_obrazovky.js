@@ -38,7 +38,7 @@ function resetGame(progress) {
 }
 
 // při zavření / přepnutí stránky (hlavně mobil) uložit, ať se nic neztratí
-const saveOnLeave = () => { if (state.screen === 'playing') saveProgress(); };
+const saveOnLeave = () => { if (state.screen === 'playing' || (state.speedrun && !state.speedrun.done && ['basket', 'chess', 'foosball'].includes(state.screen))) saveProgress(); };
 window.addEventListener('pagehide', saveOnLeave);
 document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'hidden') saveOnLeave(); });
 
@@ -48,9 +48,12 @@ function setScreen(screen) {
 }
 
 // mode: null = hlavní hra, 'vrah' = Vrah z učebny C109
-function startPlaying(progress, mode = null) {
+function startPlaying(progress, mode = null, speedrun = false) {
   state.mode = mode;
   resetGame(progress);
+  // časovač: nová hra podle výběru režimu, načtená hra pokračuje s uloženým časem (28_speedrun.js)
+  state.speedrun = progress ? progress.speedrun : (speedrun ? { t: 0 } : null);
+  state.modePick = null;
   if (!progress) storageRemove(saveKey());
   setScreen('playing');
 }
@@ -58,12 +61,14 @@ function startPlaying(progress, mode = null) {
 // Zpátky na úvodní obrazovku: znovu načíst, co je kde rozehrané
 function goToTitle() {
   state.mode = null;
+  state.speedrun = null;
   state.savedGame = loadProgress();
   state.savedVrah = loadProgress(CONFIG.SAVE_KEY_VRAH);
   setScreen('title');
 }
 
 function startEnd() {
+  finishSpeedrun();   // zastaví čas a porovná s rekordem (28_speedrun.js)
   storageRemove(saveKey());
   if (state.mode === 'vrah') state.savedVrah = null; else state.savedGame = null;
   state.endTime = 0;
@@ -132,16 +137,17 @@ function getButtons() {
 
 function pressButton(id) {
   if (id === 'continue') startPlaying(state.savedGame);
-  else if (id === 'vrah') startPlaying(state.savedVrah, 'vrah');
-  else if (id === 'vrahNew') startPlaying(null, 'vrah');              // Vrah od začátku (uložení se smaže)
-  else if (id === 'restart') startPlaying(null, state.mode);          // znovu stejný režim
+  else if (id === 'vrah') { if (state.savedVrah) startPlaying(state.savedVrah, 'vrah'); else pickMode((sp) => startPlaying(null, 'vrah', sp)); }
+  else if (id === 'vrahNew') pickMode((sp) => startPlaying(null, 'vrah', sp));   // Vrah od začátku (uložení se smaže)
+  else if (id === 'restart') { const mode = state.mode; pickMode((sp) => startPlaying(null, mode, sp)); }   // znovu stejný režim
   else if (id === 'title') goToTitle();
-  else startPlaying(null); // 'new' i 'restart'
+  else pickMode((sp) => startPlaying(null, null, sp)); // 'new': výběr normální hra / speedrun
 }
 
 // Mezerník/Enter zmáčkne hlavní tlačítko, klik/ťuknutí to, na které míří
 function updateMenu() {
   const events = input.events.splice(0);
+  if (state.modePick) { modePickEvents(events); return; }   // výběr režimu (28_speedrun.js)
   if (state.musicMenu) { musicMenuEvents(events); return; }   // seznam hudby přes úvod
   if (state.screen === 'end' && state.endTime < CONFIG.END_INPUT_DELAY) return;
   const buttons = getButtons();
@@ -409,5 +415,10 @@ function renderEnd() {
   drawCenteredText(vrah ? `Případ Ferdinand je uzavřen. Holub je zelený a Ferdinand II. je tvůj.${state.vrah && state.vrah.jednicka ? ' + 📗 jednička z biologie' : ''}` : CONFIG.END_TEXT, 285, CONFIG.MENU_SUBTITLE_FONT, CONFIG.MENU_TEXT_COLOR);
   drawCenteredText(`Splněno ${activeQuests().length}/${activeQuests().length} úkolů`, 320,
     CONFIG.MENU_SMALL_FONT, CONFIG.MENU_SMALL_COLOR);
+  const sr = state.speedrun;   // speedrun: výsledný čas a rekord
+  if (sr && sr.done) {
+    drawCenteredText(`⏱ Čas: ${formatRunTime(sr.t)}${sr.record ? '   🏆 nový rekord!' : ''}`, 350, 'bold 22px sans-serif', CONFIG.MENU_TITLE_COLOR);
+    if (!sr.record) drawCenteredText(`Nejlepší čas: ${formatRunTime(sr.best)}`, 375, CONFIG.MENU_SMALL_FONT, CONFIG.MENU_SMALL_COLOR);
+  }
   if (state.endTime >= CONFIG.END_INPUT_DELAY) drawButtons();
 }

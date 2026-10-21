@@ -4,6 +4,7 @@
 
 // --- Rozcestník: co se má v daném kroku/snímku dít podle obrazovky ---
 function update(dt) {
+  tickSpeedrun(dt);   // časovač režimu Speedrun (28_speedrun.js)
   takeMuteTaps();
   takeMusicTaps();
   if (state.screen === 'playing') {
@@ -49,7 +50,9 @@ function render() {
   drawMuteButton();
   drawMusicButton();   // co hraje (ve hře a na úvodu)
   if (state.screen === 'playing') drawEnergyBar();   // hlad (17_pribehy.js)
+  drawSpeedrunTimer(); // časovač ve hře (jen speedrun)
   drawMusicMenu();     // seznam písniček (P)
+  drawModePick();      // výběr režimu při nové hře (úvod i závěr)
 }
 
 // =====================================================================

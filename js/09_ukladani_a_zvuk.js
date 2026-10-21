@@ -27,6 +27,7 @@ function saveProgress() {
     bag: state.bag,
     story: state.story,
     vrah: state.vrah,
+    speedrun: state.speedrun,   // časovač režimu Speedrun (28_speedrun.js), jinak null
   }));
 }
 
@@ -46,13 +47,14 @@ function loadProgress(key = CONFIG.SAVE_KEY) {
         else if (i === data.questIndex && stages.includes(data.questStage)) quests[q.id] = data.questStage;
       });
     } else return null;
-    if (!Object.values(quests).some((st) => st !== 'none') && !data.money) return null;   // nic rozehraného
+    if (!Object.values(quests).some((st) => st !== 'none') && !data.money && !(data.speedrun && data.speedrun.t > 0)) return null;   // nic rozehraného (rozběhnutý speedrun se ale nabídne)
     return {
       quests, tracked: typeof data.tracked === 'string' ? data.tracked : null,
       money: Number.isFinite(data.money) ? data.money : 0,
       bag: Array.isArray(data.bag) ? data.bag : [],
       story: data.story && typeof data.story === 'object' ? data.story : null,
       vrah: data.vrah && typeof data.vrah === 'object' ? data.vrah : null,
+      speedrun: data.speedrun && Number.isFinite(data.speedrun.t) && data.speedrun.t >= 0 ? { t: data.speedrun.t } : null,
     };
   } catch (e) {
     return null;
