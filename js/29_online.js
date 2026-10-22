@@ -216,6 +216,7 @@ function drawTitleControls() {
 const pauseItems = () => [
   { id: 'resume', label: '▶ Pokračovat' },
   ...(onlineReady() ? [{ id: 'online', label: `🌐 Online: ${state.online ? 'ZAP' : 'VYP'}` }] : []),
+  ...(onlineReady() && state.online ? [{ id: 'players', label: '👥 Hráči online' }] : []),   // 31_online_hry.js
   { id: 'quality', label: qualityLabel() },
   { id: 'menu', label: '🏠 Hlavní menu' },
 ];
@@ -224,7 +225,7 @@ const pauseRows = () => { const P = pausePanel(); return pauseItems().map((it, i
 
 function canOpenPause() {
   return state.screen === 'playing' && !state.transition && !state.pauseMenu && !!state.room && !state.room.shop
-    && !(state.musicMenu || state.songMenu || state.map || state.catalog || state.inventory || state.wires || state.sticker || state.labTask || state.board || state.dialog);
+    && !(state.musicMenu || state.songMenu || state.map || state.catalog || state.inventory || state.wires || state.sticker || state.labTask || state.board || state.plist || state.opick || state.dialog);
 }
 function takeMenuButtonTaps() {
   if (state.screen !== 'playing' || state.transition || state.pauseMenu) return;
@@ -257,6 +258,7 @@ function pauseMenuEvents(events) {
     if (item.id === 'online') { setOnline(!state.online); m.sel = i; continue; }   // zapnout / vypnout online, nabídka zůstane
     if (item.id === 'quality') { toggleQuality(); m.sel = i; continue; }          // výchozí / nízká kvalita (30_kvalita.js)
     state.pauseMenu = null;
+    if (item.id === 'players') { mpOpenPlist(); return; }
     if (item.id === 'menu') { saveProgress(); goToTitle(); }   // postup (i čas speedrunu) se uloží, v menu je „Pokračovat“
     return;
   }

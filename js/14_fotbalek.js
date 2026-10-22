@@ -413,7 +413,7 @@ function renderFoosball() {
   }
   // skóre
   if (f.level) {
-    const two = f.level.id === 'two';
+    const two = f.level.id === 'two' || !!f.online;   // online hra: Červení (hostitel) proti Modrým
     roundRectPath(W / 2 - 170, 8, 340, 70, 12);
     ctx.fillStyle = 'rgba(0, 0, 0, 0.6)';
     ctx.fill();
@@ -421,7 +421,7 @@ function renderFoosball() {
     drawOutlinedText(two ? 'Červení' : 'Ty', W / 2 - 110, 36, 'bold 18px sans-serif', '#ff7a6e', 'middle');
     drawOutlinedText(two ? 'Modří' : 'Počítač', W / 2 + 112, 36, 'bold 18px sans-serif', '#7aa6ff', 'middle');
     drawOutlinedText(`${f.level.name} · do ${FOOS.WIN} gólů`, W / 2, 64, 'bold 12px sans-serif', '#e8e0d0', 'middle');
-    const hint = isTouchHint()
+    const hint = f.online ? (isTouchHint() ? 'Táhni prstem nahoru a dolů · kope se samo' : 'Šipky / W S = tyče · mezerník = kop · Esc = konec') : isTouchHint()
       ? (two ? 'Každý táhne prstem na své půlce · kope se samo' : 'Táhni prstem nahoru a dolů · kope se samo')
       : (two ? 'Červení: W S + mezerník · Modří: šipky + Enter · Esc = konec' : 'Šipky nahoru/dolů = tyče · mezerník = kop · Esc = konec');
     drawOutlinedText(hint, W / 2, 582, 'bold 13px sans-serif', '#ffffff', 'middle');
