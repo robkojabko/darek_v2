@@ -27,7 +27,7 @@ const state = {
   toast: null,      // krátká hláška: { text, t }
   effects: [],      // efekty sebrání: { x, y, t, color }
   time: 0,          // herní čas pro animace (s)
-  screen: 'title',  // 'title' (úvod) | 'playing' (hra) | 'basket' / 'chess' / 'foosball' (minihry) | 'end' (závěr)
+  screen: 'title',  // 'title' (úvod) | 'playing' (hra) | 'basket' / 'chess' / 'foosball' / 'pingpong' (minihry) | 'end' (závěr)
   chess: null,      // stav šachů (obrazovka 'chess')
   foos: null,       // stav fotbálku (obrazovka 'foosball')
   savedGame: null,  // uložený postup nabízený na úvodní obrazovce

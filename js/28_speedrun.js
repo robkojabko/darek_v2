@@ -36,7 +36,7 @@ function speedrunPaused() {
 function speedrunRunning() {
   const s = state.speedrun;
   if (!s || s.done || document.hidden) return false;
-  if (state.screen === 'basket' || state.screen === 'chess' || state.screen === 'foosball') return true;   // minihry se počítají
+  if (state.screen === 'basket' || state.screen === 'chess' || state.screen === 'foosball' || state.screen === 'pingpong') return true;   // minihry se počítají
   return state.screen === 'playing' && !speedrunPaused();
 }
 let speedrunSavedAt = 0;

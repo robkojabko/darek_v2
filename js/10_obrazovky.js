@@ -38,7 +38,7 @@ function resetGame(progress) {
 }
 
 // při zavření / přepnutí stránky (hlavně mobil) uložit, ať se nic neztratí
-const saveOnLeave = () => { if (state.screen === 'playing' || (state.speedrun && !state.speedrun.done && ['basket', 'chess', 'foosball'].includes(state.screen))) saveProgress(); };
+const saveOnLeave = () => { if (state.screen === 'playing' || (state.speedrun && !state.speedrun.done && ['basket', 'chess', 'foosball', 'pingpong'].includes(state.screen))) saveProgress(); };
 window.addEventListener('pagehide', saveOnLeave);
 document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'hidden') saveOnLeave(); });
 

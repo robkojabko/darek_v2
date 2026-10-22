@@ -35,6 +35,11 @@ function update(dt) {
     updateFoosball(dt);
     return;
   }
+  if (state.screen === 'pingpong') {
+    state.time += dt;
+    updatePingpong(dt);   // 32_pingpong.js
+    return;
+  }
   state.time += dt; // animace v menu
   if (state.screen === 'end') {
     state.endTime += dt;
@@ -51,6 +56,7 @@ function render() {
   else if (state.screen === 'basket') renderBasket();
   else if (state.screen === 'chess') renderChess();
   else if (state.screen === 'foosball') renderFoosball();
+  else if (state.screen === 'pingpong') renderPingpong();
   else renderGame();
   if (state.screen === 'playing') { drawCatalog(); drawMap(); drawSongMenu(); drawPrankHud(); drawVrahOverlays(); drawStoryOverlays(); drawCatalogButton(); drawMapButton(); drawInventoryButton(); }
   drawMuteButton();
