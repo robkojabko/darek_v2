@@ -22,7 +22,7 @@ const MP = {
   PURGE: 120000,      // ms – takhle staré záznamy se z databáze smažou
   LERP: 12,           // jak rychle cizí postavička dojede na poslední známou polohu
   COLORS: ['#8e2424', '#1f6b3a', '#6a2c8c', '#a65e12', '#0f6c7a', '#7a6a12', '#8c2c63', '#3b4a8c'],   // vesty ostatních
-  ACTIVITY: { sachy: '♟', fotbalek: '⚽', kos: '🏀', pingpong: '🏓', mluvi: '💬', obchod: '🛒' },
+  ACTIVITY: { sachy: '♟', fotbalek: '⚽', kos: '🏀', pingpong: '🏓', satna: '👕', mluvi: '💬', obchod: '🛒' },
   BUTTON: { x: 8, y: 38, w: 170, h: 26 },   // na úvodu pod hudbou
   NAME_BUTTON: { x: 8, y: 66, w: 170, h: 26 },   // pod ním jméno (pod ním Kvalita, 30_kvalita.js)
   BADGE: { x: 600, y: 86, w: 190, h: 18 },  // ve hře pod energií (pod časovačem speedrunu)
@@ -125,7 +125,7 @@ function mpSync() {
     if (typeof v.r !== 'string' || !Number.isFinite(v.x) || !Number.isFinite(v.y) || !Number.isFinite(v.t)) continue;
     const o = mp.others[id] || { dx: v.x, dy: v.y, phase: 0, blend: 0, color: mpColor(id) };
     if (o.r !== v.r) { o.dx = v.x; o.dy = v.y; }   // přešel do jiné místnosti: neklouzat přes celou mapu
-    Object.assign(o, { n: cleanPlayerName(v.n) || '?', r: v.r, x: v.x, y: v.y, a: typeof v.a === 'string' ? v.a : '', t: v.t });
+    Object.assign(o, { n: cleanPlayerName(v.n) || '?', r: v.r, x: v.x, y: v.y, a: typeof v.a === 'string' ? v.a : '', s: typeof v.s === 'string' ? v.s : '', t: v.t });
     if (Number.isInteger(v.e) && MP.EMOTES[v.e] && v.ek !== o.ek) { o.ek = v.ek; o.emote = MP.EMOTES[v.e]; o.emoteT = state.time; }   // nový smajlík
     next[id] = o;
   }
@@ -152,6 +152,7 @@ function mpActivity() {
   if (state.screen === 'foosball') return 'fotbalek';
   if (state.screen === 'basket') return 'kos';
   if (state.screen === 'pingpong') return 'pingpong';
+  if (state.screen === 'skins') return 'satna';
   if (state.room && state.room.shop) return 'obchod';
   if (state.dialog || state.scene) return 'mluvi';
   return '';
@@ -162,6 +163,7 @@ function mpMyRecord() {
   const a = mpActivity();
   if (a) rec.a = a;
   if (mp.emote && state.time - mp.emote.t < MP.EMOTE_TIME) { rec.e = mp.emote.i; rec.ek = mp.emote.k; }
+  if (mySkin !== SKINS[0]) rec.s = mySkin.id;   // skin z Lockeru (33_skiny.js)
   return rec;
 }
 function mpSend(rec) {
@@ -183,7 +185,7 @@ window.addEventListener('pagehide', () => { if (mp.on) mpRemoveMe(); });
 function updateMultiplayer(dt) {
   if (!mp.on || !mpReady()) return;
   if (!mp.es) mpConnect();
-  const inGame = state.room && ['playing', 'chess', 'foosball', 'basket', 'pingpong'].includes(state.screen);
+  const inGame = state.room && ['playing', 'chess', 'foosball', 'basket', 'pingpong', 'skins'].includes(state.screen);
   mp.sendT -= dt;
   mp.beatT -= dt;
   if (inGame) {
@@ -229,7 +231,8 @@ function drawRemotePlayers() {
     const x = Math.round(room.x + o.dx), y = Math.round(room.y + o.dy);
     if (!inView({ x, y, w: s, h: s }, 80)) continue;   // mimo záběr (30_kvalita.js)
     drawCharacterShadow({ x, y, w: s, h: s });
-    drawFigure(x + s / 2, y + s, o.phase, o.blend, {
+    const skin = o.s && skinById(o.s);   // vlastní skin z Lockeru, jinak Roman s barevnou vestou
+    drawFigure(x + s / 2, y + s, o.phase, o.blend, skin ? skinLook(skin) : {
       face: playerFaceImg, fallback: CONFIG.PLAYER_COLOR,
       body: o.color, check: 'rgba(255, 255, 255, 0.12)',
       collar: CONFIG.PLAYER_SHIRT, arms: CONFIG.PLAYER_SHIRT,
@@ -342,7 +345,7 @@ function drawOnlineBadge() {
 }
 
 // --- Tlačítka Online a jméno na úvodu (vlevo nahoře pod hudbou) ---
-const titleControlsActive = () => state.screen === 'title' && !state.modePick && !state.lb && !state.musicMenu;   // i Kvalita (30_kvalita.js)
+const titleControlsActive = () => state.screen === 'title' && !state.modePick && !state.spawnPick && !state.lb && !state.musicMenu;   // i Kvalita (30_kvalita.js)
 const onlineButtonShown = () => mpReady() && titleControlsActive();
 function changePlayerName() {
   const name = cleanPlayerName(window.prompt(`Tvoje jméno (max ${SPEEDRUN.NAME_MAX} znaků – uvidí ho ostatní hráči i žebříček):`, mp.name));

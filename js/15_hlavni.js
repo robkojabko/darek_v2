@@ -40,6 +40,11 @@ function update(dt) {
     updatePingpong(dt);   // 32_pingpong.js
     return;
   }
+  if (state.screen === 'skins') {
+    state.time += dt;
+    updateSkins(dt);      // Locker – výběr skinu (33_skiny.js)
+    return;
+  }
   state.time += dt; // animace v menu
   if (state.screen === 'end') {
     state.endTime += dt;
@@ -57,6 +62,7 @@ function render() {
   else if (state.screen === 'chess') renderChess();
   else if (state.screen === 'foosball') renderFoosball();
   else if (state.screen === 'pingpong') renderPingpong();
+  else if (state.screen === 'skins') renderSkins();
   else renderGame();
   if (state.screen === 'playing') { drawCatalog(); drawMap(); drawSongMenu(); drawPrankHud(); drawVrahOverlays(); drawStoryOverlays(); drawCatalogButton(); drawMapButton(); drawInventoryButton(); }
   drawMuteButton();
@@ -70,6 +76,7 @@ function render() {
   drawQualityButton(); // úvod: Kvalita (30_kvalita.js)
   drawMusicMenu();     // seznam písniček (P)
   drawModePick();      // výběr režimu při nové hře (úvod i závěr)
+  drawSpawnPick();     // kde začít: venku / ve skříňkách (33_skiny.js)
   drawPauseMenu();     // Pozastaveno / Hlavní menu (31_menu.js)
   drawLeaderboard();   // okno žebříčku
 }

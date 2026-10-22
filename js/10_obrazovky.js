@@ -31,7 +31,7 @@ function resetGame(progress) {
   applyDamien();  // Damien a Michaelle doma, nebo už v holčičí šatně (24_damien.js)
   applyVrah(progress);   // režim Vrah: postavy na místa z příběhu, jinak domů (18_vrah.js)
   input.events.length = 0;
-  if (state.mode === 'vrah') vrahStart(); else enterRoom(CONFIG.START_ROOM);
+  if (state.mode === 'vrah') vrahStart(); else enterStartRoom();   // venku / ve skříňkách (33_skiny.js)
   progressWatch.sig = questSignature();
   progressWatch.bagSig = `${state.money}|${state.bag.join(',')}`;
   progressWatch.nextSave = state.time;
@@ -143,20 +143,21 @@ function getButtons() {
 }
 
 function pressButton(id) {
-  if (id === 'continue') startPlaying(state.savedGame);
+  if (id === 'continue') pickStart(() => startPlaying(state.savedGame));   // kde začít (33_skiny.js)
   else if (id === 'vrah') { if (state.savedVrah) startPlaying(state.savedVrah, 'vrah'); else pickMode((sp) => startPlaying(null, 'vrah', sp)); }
   else if (id === 'vrahNew') pickMode((sp) => startPlaying(null, 'vrah', sp));   // Vrah od začátku (uložení se smaže)
-  else if (id === 'restart') { const mode = state.mode; pickMode((sp) => startPlaying(null, mode, sp)); }   // znovu stejný režim
+  else if (id === 'restart') { const mode = state.mode; pickMode((sp) => (mode ? startPlaying(null, mode, sp) : pickStart(() => startPlaying(null, null, sp)))); }   // znovu stejný režim
   else if (id === 'title') goToTitle();
   else if (id === 'leaderboard') openLeaderboard('hra');   // žebříček z hlavního menu (28_speedrun.js)
   else if (id === 'score') scoreButtonPress();   // odeslání času do žebříčku (28_speedrun.js)
-  else pickMode((sp) => startPlaying(null, null, sp)); // 'new': výběr normální hra / speedrun
+  else pickMode((sp) => pickStart(() => startPlaying(null, null, sp))); // 'new': normální hra / speedrun, pak kde začít
 }
 
 // Mezerník/Enter zmáčkne hlavní tlačítko, klik/ťuknutí to, na které míří
 function updateMenu() {
   const events = input.events.splice(0);
   if (state.modePick) { modePickEvents(events); return; }   // výběr režimu (28_speedrun.js)
+  if (state.spawnPick) { spawnPickEvents(events); return; }  // kde začít (33_skiny.js)
   if (state.lb) { leaderboardEvents(events); return; }       // žebříček (28_speedrun.js)
   if (state.musicMenu) { musicMenuEvents(events); return; }   // seznam hudby přes úvod
   if (state.screen === 'end' && state.endTime < CONFIG.END_INPUT_DELAY) return;

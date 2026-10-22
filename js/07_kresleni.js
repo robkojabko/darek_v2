@@ -784,6 +784,7 @@ function renderGame() {
   drawVrahWorld();
   drawPivoWorld();
   drawStrunyWorld();
+  drawLockerWorld();   // Locker na skiny v Dolních šatnách (33_skiny.js)
   drawSmokeLeak();   // kouř z kabinetu Chválové (20_skola.js)
   drawTeachers();
 

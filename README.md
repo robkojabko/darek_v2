@@ -66,6 +66,8 @@ js/28_speedrun.js     režim Speedrun (časovač) a žebříček přes Firebase 
 js/29_multiplayer.js  online hráči: kdo má zapnuté Online, vidí ostatní ve stejné místnosti (Firebase Realtime Database)
 js/30_kvalita.js      kvalita grafiky (výchozí / nízká) a nekreslení věcí mimo obrazovku (od kamaráda)
 js/31_menu.js         ☰ Hlavní menu / Pozastaveno ve hře (od kamaráda, napojené na 29_multiplayer.js)
+js/32_pingpong.js     minihra pingpong u stolů v hale s pingpongem
+js/33_skiny.js        výběr startu (venku / ve skříňkách), Locker v Dolních šatnách a výběr skinu
 js/15_hlavni.js       update/render podle obrazovky, herní smyčka, START (musí být poslední)
 obrazky/              hlavy 48 × 48 px: hrac.png, mala.png, krivacek.png, rauscher.png, holub.png, soumar.png, lencova.png, vesela.png, mraz.png …
 zvuky/                hudba: pozadí/ = hudba na pozadí (CONFIG.MUSIC_PLAYLIST), „Treplev.mp3“ (v C202 u Kluse), „fotbálek.mp3“ (u fotbálku), Mykyta/ = písničky od Mykyho
@@ -521,7 +523,7 @@ Další učitelé bez úkolu: Křiváček (kabinet2, hlava z `Křiváček oprava
 
 ## Multiplayer (`js/29_multiplayer.js`)
 
-Uživatel chce postupně tři kroky: **1. hráči se vidí** (hotové), **2. chat / smajlíky** (spíš hotové hlášky než volné psaní, hrají to spolužáci), **3. společný svět** (společné úkoly, šachy a fotbálek proti sobě online).
+Uživatel chce postupně tři kroky: **1. hráči se vidí** (hotové), **2. smajlíky** (hotové – uživatel chtěl 10 smajlíků na výběr, žádné psaní), **3. společný svět** (společné úkoly, šachy a fotbálek proti sobě online – zatím ne).
 
 ### Jak se hraje online
 
@@ -536,25 +538,49 @@ Uživatel chce postupně tři kroky: **1. hráči se vidí** (hotové), **2. cha
 - Ve hře je pod energií „👥 Online: 3 hráči (1 tady)“, se speedrunem o řádek níž (`drawOnlineBadge`, `MP.BADGE`). Na úvodu je u přepínače počet hráčů ve hře.
 - Každé otevření stránky je nový hráč (`mp.id`), takže dvě záložky = dva hráči.
 
+### Krok 2: smajlíky
+
+- Ve hře je při zapnutém Online tlačítko **😊** vlevo od ☰ (`MP.EMOTE_BUTTON`) nebo klávesa **T**. Otevře se panel s 10 smajlíky vpravo dole (`MP.EMOTE_PANEL`, levá půlka mobilu patří joysticku): 👋 😂 👍 😮 ❤️ 💀 😡 😎 🤔 🔥 (`MP.EMOTES`). Ťuknutí / klik nebo čísla **1–0** pošlou smajlík, Esc nebo ťuknutí mimo zavře (Esc pak neotevře menu ☰ – `stopImmediatePropagation`).
+- Smajlík je 3 s (`MP.EMOTE_TIME`) v bílé bublině nad jménem (`drawEmoteBubble`), u mě nad hlavou taky. V záznamu je jen po tu dobu: `e` = pořadí smajlíku, `ek` = pořadové číslo (stejný smajlík znovu = nová bublina).
+
 ### Databáze
 
 - **Firebase Realtime Database** v uživatelově vlastním projektu **`darek-online`** (založil ho sám, účet `tonda.zajic08@gmail.com`): `MP.DB_URL` = `https://darek-online-default-rtdb.europe-west1.firebasedatabase.app`. Žebříček je dál v kamarádově projektu `darek-30b0c` (Firestore, `28_speedrun.js`) – jsou to dvě nezávislé věci.
-- Přes REST bez knihoven: vlastní záznam `hraci/<id>` = `{ n, r, x, y, a?, t }` se posílá PUTem (nejčastěji po 0,15 s, `MP.SEND_EVERY`, když hráč stojí, jednou za 3 s, `MP.HEARTBEAT`), změny ostatních chodí proudem `EventSource` (události `put` / `patch`, kopie v `mp.raw`, `mpSetAt`, `mpSync`). `t` je čas serveru (`{".sv": "timestamp"}`), rozdíl hodin se zjistí z vlastního záznamu (`mp.offset`).
+- Přes REST bez knihoven: vlastní záznam `hraci/<id>` = `{ n, r, x, y, a?, e?, ek?, s?, t }` (`e`/`ek` smajlík, `s` = id skinu, když není výchozí) se posílá PUTem (nejčastěji po 0,15 s, `MP.SEND_EVERY`, když hráč stojí, jednou za 3 s, `MP.HEARTBEAT`), změny ostatních chodí proudem `EventSource` (události `put` / `patch`, kopie v `mp.raw`, `mpSetAt`, `mpSync`). `t` je čas serveru (`{".sv": "timestamp"}`), rozdíl hodin se zjistí z vlastního záznamu (`mp.offset`).
 - Kdo se neozval 12 s (`MP.STALE`), není vidět. Záznamy starší než 2 minuty (`MP.PURGE`) smaže kdokoli online. Na úvodu, na závěru, po vypnutí a při zavření stránky (`pagehide`) se vlastní záznam smaže.
-- **Pravidla** jsou v `tools/firebase_pravidla_multiplayer.json` (Firebase konzole → Realtime Database → Pravidla → vložit → Publikovat). Číst jde jen `hraci`, zapisovat jen jednotlivé `hraci/<id>` s poli n (1–16 znaků), r, x, y, a, t (= čas serveru); cokoli jiného databáze odmítne. Proto se celé `hraci` smazat nedá, jen po jednom. **Při přidání nového pole (krok 2, 3) se musí upravit i pravidla**, jinak databáze odmítne celý zápis a hráči se přestanou vidět.
+- **Pravidla** jsou v `tools/firebase_pravidla_multiplayer.json` (Firebase konzole → Realtime Database → Pravidla → vložit → Publikovat). Číst jde jen `hraci`, zapisovat jen jednotlivé `hraci/<id>` s poli n (1–16 znaků), r, x, y, a, e (0–9), ek, s (do 24 znaků), t (= čas serveru); cokoli jiného databáze odmítne. Proto se celé `hraci` smazat nedá, jen po jednom. **Při přidání nového pole (krok 2, 3) se musí upravit i pravidla**, jinak databáze odmítne celý zápis a hráči se přestanou vidět.
 - Firebase povoluje přístup odkudkoli (`Access-Control-Allow-Origin: *`), takže online jde i ze `jeden_soubor/hra_darek.html` otevřeného z disku.
 - Bez adresy (`VLOŽ_…`) se přepínač Online neukáže. Adresa jde dočasně přepsat v URL: `index.html?mpdb=http://127.0.0.1:8001`.
 
 ### Testy
 
 - **Bez Firebase:** falešná databáze `python tools/falesna_databaze.py . 8001` (REST + proud `text/event-stream`, statické soubory hry) a `index.html?mpdb=http://127.0.0.1:8001`. Dvě hry v headless Chrome (`C:\Program Files\Google\Chrome\Application\chrome.exe --headless=new --remote-debugging-port=…`) řízené přes DevTools protokol z Pythonu (`pip install websocket-client`, `Runtime.evaluate`, snímek přes `canvas.toDataURL`). Herní smyčka se v testu pumpuje ručně `update(1/60)`.
-- Ověřené: vidí se navzájem na správném místě, chůze, ikonka u šachů (`openChess()`), odchod do jiné místnosti, návrat na úvod i vypnutí Online. Totéž prošlo i naostro proti `darek-online` (testovací záznamy se pak smažou ručně `curl -X DELETE …/hraci/<id>.json`).
+- Ověřené: vidí se navzájem na správném místě, chůze, ikonka u šachů (`openChess()`), odchod do jiné místnosti, návrat na úvod i vypnutí Online; smajlíky (tlačítko, T a čísla, druhý hráč vidí bublinu, po 3 s pole `e` zmizí); skin druhého hráče. Totéž prošlo i naostro proti `darek-online` (testovací záznamy se pak smažou ručně `curl -X DELETE …/hraci/<id>.json`).
 
 ### Kamarádova větev `mptest` (nepřevzatá)
 
 - Kamarád (`robkojabko/darek_v2`) má ve větvi `mptest` vlastní online: `29_online.js` + `31_online_hry.js` (šachy a fotbálek proti sobě přes výzvy, přehled hráčů a jejich úkolů na klávese O, ✔ x/y nad hlavou, povinné jméno při startu hry), do své databáze `darek-30b0c` pod `mp/players`.
 - **Uživatel ho nechtěl** – multiplayer zůstává ten náš (`29_multiplayer.js`). Převzaté jsou jen novinky mimo online: `30_kvalita.js` (beze změn) a menu ☰ z jeho `29_online.js` (do `31_menu.js`, napojené na `mp.on` / `setOnline`). Při 22. 10. 2026 jeho online navíc nefungoval: pravidla jeho databáze povolovala jen n, r, x, y, c, t a odmítla zápis s q, qm, qd, qt a m.
 - Jeho kód výzev (`31_online_hry.js`, zprávy v poli `m` záznamu hráče, hostitel bílý / červení) se může hodit jako inspirace pro krok 3.
+
+## Pingpong (`js/32_pingpong.js`)
+
+- U obou stolů v hale s pingpongem (`SPOTS`, `pingpongTableRect` = bližší stůl) mezerník / ťuknutí otevře obrazovku `'pingpong'`. Menu, konec a „Ukončit zápas?“ sdílí vzhled se šachy a fotbálkem, ✕ vlevo nahoře jako u fotbálku.
+- Pohled shora: ty dole (červené pádlo), počítač nahoře. Míček má výšku `z`: kreslí se o `z × PP.LIFT` výš a větší, stín je na stole. **Zásah se počítá s míčkem tam, kde je vidět** (ne se stínem) – jinak hráč mířil na míček a netrefil ho.
+- Ovládání: pádlo jde za myší, na mobilu za prstem a je o `PP.TOUCH_LIFT` nad prstem, ať je vidět; nebo šipky / WASD. Odpaluje se samo, když míček po odskoku na mé straně narazí do pádla:
+  - směr do stran = kde míček pádlo trefí (střed / kraj, `ppHitMe`), boční pohyb pádla přidá jen trochu (`vx / 2600`) – při natahování pro míček nelétá do autu;
+  - síla = rychlost míčku + švih dopředu, pozvolná (`0,8 × (1 − e^(−švih/650))`), přes 1,13 je zámezí;
+  - švih do strany = faleš (`ax`): míček se stáčí a po odskoku uhne.
+- `ppShoot` spočítá z místa dopadu a doby letu rychlost a oblouk. Pravidla (`ppPhysics`): odskok na vlastní straně, dvojí odskok, zem bez odskoku = bod. Hraje se do 7 s rozdílem 2 (`PP.WIN`), podání po 2 bodech, za 6:6 po každém. Podání: švih dopředu / mezerník, samo po 4 s.
+- Počítač (`ppAi`): po úderu hráče čeká `react`, pak jde na místo, kde míček bude (`ppPredictX` simuluje let), s chybou `err`; míří do stran podle `aim`, faleš `spin`, občas úder pokazí (`miss`). Výhra 5 / 15 / 30 Kč.
+- **Vyvážení** robotem, který hraje jako člověk (reakce 0,15–0,32 s, chyba odhadu roste s rychlostí a falší míčku, omezená rychlost ruky): lehký počítač porazí slabý hráč skoro vždy, střední vyhraje asi 60 % zápasů proti dobrému, těžký proti výbornému asi 80 %.
+
+## Start a skiny (`js/33_skiny.js`)
+
+- **Kde začít:** po „Hrát“ (a výběru normální hra / speedrun), „Pokračovat“ i „Hrát znovu“ v hlavní hře se ukáže „Kde chceš začít?“ – 🏫 Venku před školou (`ulice`), nebo 🔒 Ve skříňkách (Dolní šatny, hned u Lockeru) (`START_PLACES`, `pickStart`, `enterStartRoom` v `resetGame`). Volba se pamatuje (`hra_darek_start_v1`). Režim Vrah se neptá.
+- **Locker:** fialová skříňka s 👕 na levé zdi Dolních šaten (`LOCKER`, svítí, nad ní cedulka). Mezerník / ťuknutí otevře obrazovku `'skins'`.
+- **Výběr skinu:** postava přes většinu obrazovky (`SKIN_UI.SCALE` 4,2), šipky po stranách (← → / ťuknutí), ťuknutí na postavu nebo ↑ = otočí se dokola (zúžení podle cos, zezadu vlasy místo obličeje – `drawFigureBack`), „✓ Vybrat“ / mezerník, ✕ / Esc zpět. Pozadí jsou šatny: řada skříněk, některé otevřené s oblečením na ramínkách, taška a boty (`drawSkinRoom`, `OPEN_LOCKERS`), lavička a reflektor.
+- **Skiny** jsou v `SKINS` (`id`, `name`, `face?` = hlava z `obrazky/`, bez ní Romanova, `hair`, barvy oblečení jako pro `drawFigure`). Zatím jsou provizorní: Roman, v mikině, v dresu, v obleku, v kostkované košili. **Uživatel dodá vlastní skiny.** Vybraný skin se pamatuje (`hra_darek_skin_v1`), hráč se v něm kreslí všude (`drawPlayerFigure` je přepsaná) a online ho vidí i ostatní (pole `s`).
 
 ## Menu ☰ a kvalita grafiky (od kamaráda)
 
