@@ -21,7 +21,7 @@ function resize() {
   const scale = Math.min(window.innerWidth / VIEW.w, window.innerHeight / CONFIG.HEIGHT);
   const cssW = Math.floor(VIEW.w * scale);
   const cssH = Math.floor(CONFIG.HEIGHT * scale);
-  const dpr = window.devicePixelRatio || 1;
+  const dpr = renderScale();   // výchozí: devicePixelRatio, nízká kvalita: poloviční (30_kvalita.js)
   canvas.style.width = cssW + 'px';
   canvas.style.height = cssH + 'px';
   canvas.width = Math.round(cssW * dpr);
@@ -728,6 +728,7 @@ function renderGame() {
   const room = state.room;
   const cam = getCamera(room);
   state.cam = cam;
+  cullBegin(cam);   // co je mimo záběr, se nekreslí (30_kvalita.js)
   ctx.save();
   const wide = cam.zoom !== 1 ? VIEW.offX : 0;   // mobil: svět od levého okraje plátna
   if (cam.x || cam.y || room.parts || cam.zoom !== 1) {   // posouvaná místnost nesmí zajet pod horní lištu s názvem
@@ -743,6 +744,7 @@ function renderGame() {
   const art = ROOM_ART[room.id];
   if (room.parts) {
     for (const part of room.parts) {
+      if (!inView(part.frame, 0)) continue;
       ROOM_ART[part.art].draw({
         ...part.frame, id: part.id,
         obstacles: room.obstacles.filter((o) => o.part === part.id),
@@ -751,6 +753,7 @@ function renderGame() {
     }
     // otevřené průchody mezi díly: místo zdi podlaha (každá polovina podlahou svého dílu)
     for (const o of room.openings) {
+      if (!inView(o, 0)) continue;
       const [a, b] = o.fill || ['old', 'old'];
       const vertical = o.h > o.w;   // svislá zeď → poloviny vlevo/vpravo, jinak nahoře/dole
       const halves = vertical
@@ -769,13 +772,13 @@ function renderGame() {
     for (const wall of buildRoomWalls(room)) drawRect(wall, room.wallColor);
   }
   // nábytek před dveřmi, ať nápisy nad dveřmi nic nepřekryje
-  for (const o of room.obstacles) (OBSTACLE_ART[o.kind] || drawPlainObstacle)(o.rect, o, room);
+  for (const o of room.obstacles) if (inView(o.rect)) (OBSTACLE_ART[o.kind] || drawPlainObstacle)(o.rect, o, room);
   // nápisy, které nesmí překrýt nábytek (drawOver u kresby dílu)
-  for (const part of room.parts || []) if (ROOM_ART[part.art].drawOver) ROOM_ART[part.art].drawOver(part.frame);
+  for (const part of room.parts || []) if (ROOM_ART[part.art].drawOver && inView(part.frame, 0)) ROOM_ART[part.art].drawOver(part.frame);
   if (!room.parts && art && art.drawOver) art.drawOver(room);
   drawDoors(room, art && art.door);
 
-  for (const item of visibleItems()) drawItem(item);
+  for (const item of visibleItems()) if (inView(item.rect)) drawItem(item);
   drawPrankWorld();
   drawMotorkaWorld();
   drawVrahWorld();
@@ -792,6 +795,7 @@ function renderGame() {
   drawEffects();
   drawTalkHint();
   ctx.restore();
+  cullReset();   // rozhraní a ostatní obrazovky se nevynechává
 
   drawRoomTitle(room);
   drawHud();

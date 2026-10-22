@@ -9,6 +9,7 @@ function update(dt) {
   takeMuteTaps();
   takeMusicTaps();
   takeTitleControlTaps();   // úvod: Online a jméno vlevo nahoře (29_online.js)
+  takeQualityTaps();        // úvod: tlačítko Kvalita (30_kvalita.js)
   takeMenuButtonTaps();     // ve hře: tlačítko Hlavní menu (29_online.js)
   if (state.screen === 'playing') {
     takeCatalogTaps();
@@ -42,6 +43,7 @@ function update(dt) {
 }
 
 function render() {
+  cullReset();
   clearCanvas();   // i okraje širokého plátna na mobilu
   if (state.screen === 'title') renderTitle();
   else if (state.screen === 'end') renderEnd();
@@ -57,6 +59,7 @@ function render() {
   drawOnlineHud();     // stav online ve hře (29_online.js)
   drawMenuButton();    // ☰ Hlavní menu ve hře (29_online.js)
   drawTitleControls(); // úvod: Online a jméno (29_online.js)
+  drawQualityButton(); // úvod: Kvalita (30_kvalita.js)
   drawMusicMenu();     // seznam písniček (P)
   drawModePick();      // výběr režimu při nové hře (úvod i závěr)
   drawPauseMenu();     // Pozastaveno / Hlavní menu (29_online.js)
@@ -80,7 +83,7 @@ function frame(now) {
     accumulator -= CONFIG.FIXED_DT;
   }
 
-  render();
+  if (shouldRender()) render();   // nízká kvalita: každý druhý snímek (30_kvalita.js)
   requestAnimationFrame(frame);
 }
 

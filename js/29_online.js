@@ -157,6 +157,7 @@ function visibleRemotes() {
 }
 function drawRemotePlayers() {
   for (const r of visibleRemotes().sort((a, b) => a.y - b.y)) {
+    if (!inView(r, 80)) continue;   // mimo záběr (30_kvalita.js)
     const pr = { x: Math.round(r.x), y: Math.round(r.y), w: r.w, h: r.h };
     drawCharacterShadow(pr);
     drawFigure(pr.x + pr.w / 2, pr.y + pr.h, r.walkPhase, r.walkBlend, remoteLook(r.c));
@@ -215,6 +216,7 @@ function drawTitleControls() {
 const pauseItems = () => [
   { id: 'resume', label: '▶ Pokračovat' },
   ...(onlineReady() ? [{ id: 'online', label: `🌐 Online: ${state.online ? 'ZAP' : 'VYP'}` }] : []),
+  { id: 'quality', label: qualityLabel() },
   { id: 'menu', label: '🏠 Hlavní menu' },
 ];
 const pausePanel = () => { const h = 100 + pauseItems().length * 62; return { x: 250, y: Math.round(CONFIG.HEIGHT / 2 - h / 2), w: 300, h }; };
@@ -253,6 +255,7 @@ function pauseMenuEvents(events) {
     if (i === null) continue;
     const item = pauseItems()[i];
     if (item.id === 'online') { setOnline(!state.online); m.sel = i; continue; }   // zapnout / vypnout online, nabídka zůstane
+    if (item.id === 'quality') { toggleQuality(); m.sel = i; continue; }          // výchozí / nízká kvalita (30_kvalita.js)
     state.pauseMenu = null;
     if (item.id === 'menu') { saveProgress(); goToTitle(); }   // postup (i čas speedrunu) se uloží, v menu je „Pokračovat“
     return;
