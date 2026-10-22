@@ -9,6 +9,7 @@ function update(dt) {
   takeOnlineTaps();        // tlačítko Online a jméno na úvodu
   takeQualityTaps();       // úvod: tlačítko Kvalita (30_kvalita.js)
   takeMenuButtonTaps();    // ve hře: tlačítko ☰ Hlavní menu (31_menu.js)
+  takeEmoteTaps();         // ve hře: smajlíky (29_multiplayer.js)
   takeMuteTaps();
   takeMusicTaps();
   if (state.screen === 'playing') {
@@ -59,6 +60,7 @@ function render() {
   drawOnlineBadge();   // kolik hráčů je online (29_multiplayer.js)
   drawOnlineButton();  // tlačítko Online a jméno na úvodu
   drawMenuButton();    // ☰ Hlavní menu ve hře (31_menu.js)
+  drawEmoteUi();       // 😊 smajlíky ve hře (29_multiplayer.js)
   drawQualityButton(); // úvod: Kvalita (30_kvalita.js)
   drawMusicMenu();     // seznam písniček (P)
   drawModePick();      // výběr režimu při nové hře (úvod i závěr)

@@ -10,6 +10,9 @@
         "x": { ".validate": "newData.isNumber()" },
         "y": { ".validate": "newData.isNumber()" },
         "a": { ".validate": "newData.isString() && newData.val().length <= 12" },
+        "e": { ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() < 10" },
+        "ek": { ".validate": "newData.isNumber()" },
+        "s": { ".validate": "newData.isString() && newData.val().length <= 24" },
         "t": { ".validate": "newData.val() == now" },
         "$other": { ".validate": false }
       }

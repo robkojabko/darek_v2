@@ -22,10 +22,16 @@ const MP = {
   PURGE: 120000,      // ms – takhle staré záznamy se z databáze smažou
   LERP: 12,           // jak rychle cizí postavička dojede na poslední známou polohu
   COLORS: ['#8e2424', '#1f6b3a', '#6a2c8c', '#a65e12', '#0f6c7a', '#7a6a12', '#8c2c63', '#3b4a8c'],   // vesty ostatních
-  ACTIVITY: { sachy: '♟', fotbalek: '⚽', kos: '🏀', mluvi: '💬', obchod: '🛒' },
+  ACTIVITY: { sachy: '♟', fotbalek: '⚽', kos: '🏀', pingpong: '🏓', mluvi: '💬', obchod: '🛒' },
   BUTTON: { x: 8, y: 38, w: 170, h: 26 },   // na úvodu pod hudbou
   NAME_BUTTON: { x: 8, y: 66, w: 170, h: 26 },   // pod ním jméno (pod ním Kvalita, 30_kvalita.js)
   BADGE: { x: 600, y: 86, w: 190, h: 18 },  // ve hře pod energií (pod časovačem speedrunu)
+  // Smajlíky (2. krok): bublina nad hlavou na EMOTE_TIME s, vidí ji všichni ve stejné místnosti
+  EMOTES: ['👋', '😂', '👍', '😮', '❤️', '💀', '😡', '😎', '🤔', '🔥'],
+  EMOTE_TIME: 3,
+  EMOTE_KEYS: ['KeyT'],
+  EMOTE_BUTTON: { x: 556, y: 6, w: 34, h: 30 },      // ve hře vlevo od ☰ (jen když je Online)
+  EMOTE_PANEL: { x: 440, y: 404, w: 350, h: 150 },   // vpravo dole – levá půlka mobilu patří joysticku
 };
 {
   const db = new URLSearchParams(location.search).get('mpdb');
@@ -44,7 +50,10 @@ const mp = {
   offset: null,      // čas serveru − místní čas (z vlastního záznamu, který se vrátí proudem)
   status: '',        // '' | 'connecting' | 'ok' | 'error'
   sendT: 0, beatT: 0, purgeT: 5, last: '', sending: false,
+  emote: null,       // můj smajlík { i, k, t } (t = kdy, herní čas)
+  emoteSeq: 0,       // pořadí smajlíku – ostatní poznají nový, i když je stejný
 };
+state.emotePick = false;   // otevřený výběr smajlíků
 mp.name = cleanPlayerName(storageGet(SPEEDRUN.NAME_KEY) || '');   // stejné jméno jako do žebříčku
 mp.on = mpReady() && !!mp.name && storageGet(MP.ON_KEY) === '1';
 
@@ -117,6 +126,7 @@ function mpSync() {
     const o = mp.others[id] || { dx: v.x, dy: v.y, phase: 0, blend: 0, color: mpColor(id) };
     if (o.r !== v.r) { o.dx = v.x; o.dy = v.y; }   // přešel do jiné místnosti: neklouzat přes celou mapu
     Object.assign(o, { n: cleanPlayerName(v.n) || '?', r: v.r, x: v.x, y: v.y, a: typeof v.a === 'string' ? v.a : '', t: v.t });
+    if (Number.isInteger(v.e) && MP.EMOTES[v.e] && v.ek !== o.ek) { o.ek = v.ek; o.emote = MP.EMOTES[v.e]; o.emoteT = state.time; }   // nový smajlík
     next[id] = o;
   }
   mp.others = next;
@@ -141,6 +151,7 @@ function mpActivity() {
   if (state.screen === 'chess') return 'sachy';
   if (state.screen === 'foosball') return 'fotbalek';
   if (state.screen === 'basket') return 'kos';
+  if (state.screen === 'pingpong') return 'pingpong';
   if (state.room && state.room.shop) return 'obchod';
   if (state.dialog || state.scene) return 'mluvi';
   return '';
@@ -150,6 +161,7 @@ function mpMyRecord() {
   const rec = { n: mp.name, r: room.id, x: Math.round(p.x - room.x), y: Math.round(p.y - room.y) };
   const a = mpActivity();
   if (a) rec.a = a;
+  if (mp.emote && state.time - mp.emote.t < MP.EMOTE_TIME) { rec.e = mp.emote.i; rec.ek = mp.emote.k; }
   return rec;
 }
 function mpSend(rec) {
@@ -171,7 +183,7 @@ window.addEventListener('pagehide', () => { if (mp.on) mpRemoveMe(); });
 function updateMultiplayer(dt) {
   if (!mp.on || !mpReady()) return;
   if (!mp.es) mpConnect();
-  const inGame = state.room && ['playing', 'chess', 'foosball', 'basket'].includes(state.screen);
+  const inGame = state.room && ['playing', 'chess', 'foosball', 'basket', 'pingpong'].includes(state.screen);
   mp.sendT -= dt;
   mp.beatT -= dt;
   if (inGame) {
@@ -231,7 +243,87 @@ function drawRemotePlayers() {
     ctx.fillStyle = 'rgba(0, 0, 0, 0.6)'; ctx.fill();
     ctx.fillStyle = '#ffffff'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
     ctx.fillText(label, lx, ly + 1, w - 8);
+    if (o.emote) drawEmoteBubble(o.emote, lx, ly - 12, state.time - o.emoteT);
   }
+  // můj smajlík nad mou hlavou (ať vidím, co jsem poslal)
+  const me = mp.emote, p = state.player;
+  if (me && !vrahHidden()) drawEmoteBubble(MP.EMOTES[me.i], Math.round(p.x + p.w / 2), Math.round(p.y + p.h) - 82, state.time - me.t);
+}
+
+// Bublina se smajlíkem: vyskočí, chvíli drží a zmizí (age = kolik s je stará)
+function drawEmoteBubble(emoji, x, bottomY, age) {
+  if (age < 0 || age > MP.EMOTE_TIME) return;
+  const pop = Math.min(1, age / 0.15), fade = Math.min(1, (MP.EMOTE_TIME - age) / 0.4);
+  const s = 0.6 + 0.4 * pop + (age < 0.3 ? Math.sin(age / 0.3 * Math.PI) * 0.15 : 0);
+  ctx.save();
+  ctx.globalAlpha = fade;
+  ctx.translate(x, bottomY);
+  ctx.scale(s, s);
+  roundRectPath(-21, -44, 42, 38, 12);
+  ctx.fillStyle = '#ffffff'; ctx.fill();
+  ctx.strokeStyle = 'rgba(0, 0, 0, 0.35)'; ctx.lineWidth = 1.5; ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(-6, -7); ctx.lineTo(0, 0); ctx.lineTo(6, -7); ctx.closePath();
+  ctx.fillStyle = '#ffffff'; ctx.fill();
+  ctx.font = '24px sans-serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+  ctx.fillStyle = '#000000';
+  ctx.fillText(emoji, 0, -24);
+  ctx.restore();
+}
+
+// --- Výběr smajlíků (tlačítko vlevo od ☰ nebo T, čísla 1–0 pošlou rovnou) ---
+const emoteButtonShown = () => mp.on && state.screen === 'playing' && !state.pauseMenu;
+const emoteCells = () => MP.EMOTES.map((_, i) => {
+  const P = MP.EMOTE_PANEL, cw = (P.w - 20) / 5, ch = (P.h - 34) / 2;
+  return { x: P.x + 10 + (i % 5) * cw, y: P.y + 26 + Math.floor(i / 5) * ch, w: cw - 6, h: ch - 6 };
+});
+function sendEmote(i) {
+  mp.emote = { i, k: ++mp.emoteSeq, t: state.time };
+  mp.sendT = 0; mp.last = '';   // poslat hned
+  state.emotePick = false;
+  playSound([[880, 0, 0.04], [1175, 0.05, 0.05]]);
+}
+function takeEmoteTaps() {
+  if (!emoteButtonShown()) { state.emotePick = false; return; }
+  input.events = input.events.filter((ev) => {
+    if (ev.type !== 'tap' || ev.x === null) return true;
+    if (pointInRect(ev.x, ev.y, MP.EMOTE_BUTTON, 4)) { state.emotePick = !state.emotePick; return false; }
+    if (!state.emotePick) return true;
+    const i = emoteCells().findIndex((c) => pointInRect(ev.x, ev.y, c, 2));
+    if (i >= 0) { sendEmote(i); return false; }
+    if (pointInRect(ev.x, ev.y, MP.EMOTE_PANEL, 0)) return false;
+    state.emotePick = false;   // ťuknutí mimo zavře (a jde dál do hry)
+    return true;
+  });
+}
+window.addEventListener('keydown', (e) => {
+  if (!emoteButtonShown() || e.repeat || state.dialog || state.catalog || state.map || state.inventory || state.musicMenu || state.board) return;
+  if (MP.EMOTE_KEYS.includes(e.code)) { state.emotePick = !state.emotePick; return; }
+  if (!state.emotePick) return;
+  const d = /^(?:Digit|Numpad)(\d)$/.exec(e.code);
+  if (d) { sendEmote((Number(d[1]) + 9) % 10); return; }   // 1 = první … 0 = desátý
+  if (e.code === 'Escape') { state.emotePick = false; e.stopImmediatePropagation(); }   // ať se neotevře menu ☰
+}, true);
+function drawEmoteUi() {
+  if (!emoteButtonShown()) return;
+  const b = MP.EMOTE_BUTTON;
+  roundRectPath(b.x, b.y, b.w, b.h, 6);
+  ctx.fillStyle = state.emotePick ? 'rgba(255, 213, 74, 0.9)' : 'rgba(0, 0, 0, 0.45)'; ctx.fill();
+  ctx.font = '17px sans-serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillStyle = '#ffffff';
+  ctx.fillText('😊', b.x + b.w / 2, b.y + b.h / 2 + 1);
+  if (!state.emotePick) return;
+  const P = MP.EMOTE_PANEL;
+  roundRectPath(P.x, P.y, P.w, P.h, 14);
+  ctx.fillStyle = 'rgba(20, 22, 34, 0.9)'; ctx.fill();
+  ctx.strokeStyle = '#ffd54a'; ctx.lineWidth = 2; ctx.stroke();
+  ctx.font = 'bold 12px sans-serif'; ctx.fillStyle = '#e8d3a8';
+  ctx.fillText(isTouchHint() ? 'Ťukni na smajlík – uvidí ho všichni tady' : 'Klikni nebo zmáčkni 1–0 · T / Esc = zavřít', P.x + P.w / 2, P.y + 14);
+  emoteCells().forEach((c, i) => {
+    roundRectPath(c.x, c.y, c.w, c.h, 10);
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.12)'; ctx.fill();
+    ctx.font = '30px sans-serif'; ctx.fillStyle = '#000000';
+    ctx.fillText(MP.EMOTES[i], c.x + c.w / 2, c.y + c.h / 2 + 2);
+    if (!isTouchHint()) { ctx.font = 'bold 10px sans-serif'; ctx.fillStyle = '#e8d3a8'; ctx.fillText(String((i + 1) % 10), c.x + 8, c.y + 9); }
+  });
 }
 
 // Ve hře: kolik hráčů je online (pod energií, se speedrunem pod časovačem)
