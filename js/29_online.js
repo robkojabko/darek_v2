@@ -190,7 +190,7 @@ function takeTitleControlTaps() {
   if (!titleControlsActive()) return;
   input.events = input.events.filter((ev) => {
     if (ev.type !== 'tap' || ev.x === null) return true;
-    if (onlineReady() && pointInRect(ev.x, ev.y, ONLINE.ONLINE_BUTTON_TITLE, 4)) { setOnline(!state.online); return false; }
+    if (pointInRect(ev.x, ev.y, ONLINE.ONLINE_BUTTON_TITLE, 4)) { if (onlineReady()) setOnline(!state.online); return false; }
     if (pointInRect(ev.x, ev.y, ONLINE.NAME_BUTTON_TITLE, 4)) { askPlayerName(playerName()); return false; }
     return true;
   });
@@ -203,7 +203,7 @@ function drawTitleControls() {
     ctx.font = '13px sans-serif'; ctx.textAlign = 'left'; ctx.textBaseline = 'middle'; ctx.fillStyle = '#ffffff';
     ctx.fillText(text, b.x + 8, b.y + b.h / 2 + 1, b.w - 14);
   };
-  if (onlineReady()) pill(ONLINE.ONLINE_BUTTON_TITLE, `🌐 Online: ${state.online ? 'ZAP' : 'VYP'}`, state.online);
+  pill(ONLINE.ONLINE_BUTTON_TITLE, onlineReady() ? `🌐 Online: ${state.online ? 'ZAP' : 'VYP'}` : '🌐 Online: nenastaveno', onlineReady() && state.online);
   const name = playerName();
   pill(ONLINE.NAME_BUTTON_TITLE, name ? `👤 ${name}` : '👤 Nastavit jméno', false);
 }
@@ -211,9 +211,14 @@ function drawTitleControls() {
 // =====================================================================
 // HLAVNÍ MENU VE HŘE – tlačítko vedle inventáře nebo Esc. Hra stojí, postup se uloží.
 // =====================================================================
-const PAUSE_PANEL = { x: 250, y: 190, w: 300, h: 220 };
-const pauseRows = () => [0, 1].map((i) => ({ x: PAUSE_PANEL.x + 20, y: PAUSE_PANEL.y + 70 + i * 62, w: PAUSE_PANEL.w - 40, h: 52 }));
-const PAUSE_OPTIONS = ['▶ Pokračovat', '🏠 Hlavní menu'];
+// Položky nabídky: Online se vypíná a zapíná i tady (a nabídka zůstane otevřená)
+const pauseItems = () => [
+  { id: 'resume', label: '▶ Pokračovat' },
+  ...(onlineReady() ? [{ id: 'online', label: `🌐 Online: ${state.online ? 'ZAP' : 'VYP'}` }] : []),
+  { id: 'menu', label: '🏠 Hlavní menu' },
+];
+const pausePanel = () => { const h = 100 + pauseItems().length * 62; return { x: 250, y: Math.round(CONFIG.HEIGHT / 2 - h / 2), w: 300, h }; };
+const pauseRows = () => { const P = pausePanel(); return pauseItems().map((it, i) => ({ x: P.x + 20, y: P.y + 70 + i * 62, w: P.w - 40, h: 52 })); };
 
 function canOpenPause() {
   return state.screen === 'playing' && !state.transition && !state.pauseMenu && !!state.room && !state.room.shop
@@ -243,11 +248,13 @@ function pauseMenuEvents(events) {
     else if (ev.x != null) {
       const hit = pauseRows().findIndex((r) => pointInRect(ev.x, ev.y, r, 0));
       if (hit >= 0) i = hit;
-      else if (!pointInRect(ev.x, ev.y, PAUSE_PANEL, 0)) { state.pauseMenu = null; return; }   // ťuknutí mimo = zpět do hry
+      else if (!pointInRect(ev.x, ev.y, pausePanel(), 0)) { state.pauseMenu = null; return; }   // ťuknutí mimo = zpět do hry
     }
     if (i === null) continue;
+    const item = pauseItems()[i];
+    if (item.id === 'online') { setOnline(!state.online); m.sel = i; continue; }   // zapnout / vypnout online, nabídka zůstane
     state.pauseMenu = null;
-    if (i === 1) { saveProgress(); goToTitle(); }   // postup (i čas speedrunu) se uloží, v menu je „Pokračovat“
+    if (item.id === 'menu') { saveProgress(); goToTitle(); }   // postup (i čas speedrunu) se uloží, v menu je „Pokračovat“
     return;
   }
 }
@@ -259,13 +266,13 @@ window.addEventListener('keydown', (e) => {
 }, true);
 window.addEventListener('keydown', (e) => {
   if (!state.pauseMenu) return;
-  if (KEYMAP.up.includes(e.code)) state.pauseMenu.sel = 0;
-  else if (KEYMAP.down.includes(e.code)) state.pauseMenu.sel = 1;
+  if (KEYMAP.up.includes(e.code)) state.pauseMenu.sel = Math.max(0, state.pauseMenu.sel - 1);
+  else if (KEYMAP.down.includes(e.code)) state.pauseMenu.sel = Math.min(pauseItems().length - 1, state.pauseMenu.sel + 1);
 });
 function drawPauseMenu() {
   const m = state.pauseMenu;
   if (!m) return;
-  const P = PAUSE_PANEL;
+  const P = pausePanel();
   ctx.fillStyle = 'rgba(0, 0, 0, 0.55)';
   ctx.fillRect(-VIEW.offX, 0, CONFIG.WIDTH + 2 * VIEW.offX, CONFIG.HEIGHT);
   roundRectPath(P.x, P.y, P.w, P.h, 14);
@@ -276,10 +283,11 @@ function drawPauseMenu() {
   ctx.fillText('Pozastaveno', P.x + P.w / 2, P.y + 36);
   pauseRows().forEach((r, i) => {
     roundRectPath(r.x, r.y, r.w, r.h, 10);
-    ctx.fillStyle = i === m.sel && !isTouchHint() ? '#ffe9a8' : '#fffaf0'; ctx.fill();
+    const it = pauseItems()[i];
+    ctx.fillStyle = i === m.sel && !isTouchHint() ? '#ffe9a8' : it.id === 'online' && state.online ? '#d9f2d9' : '#fffaf0'; ctx.fill();
     ctx.strokeStyle = 'rgba(59, 42, 28, 0.25)'; ctx.lineWidth = 1.5; ctx.stroke();
     ctx.font = 'bold 17px sans-serif'; ctx.fillStyle = '#2b1d14'; ctx.textAlign = 'center';
-    ctx.fillText(PAUSE_OPTIONS[i], r.x + r.w / 2, r.y + r.h / 2 + 1);
+    ctx.fillText(it.label, r.x + r.w / 2, r.y + r.h / 2 + 1);
   });
   ctx.font = '12px sans-serif'; ctx.fillStyle = '#6d5a48';
   ctx.fillText(isTouchHint() ? 'Postup se uloží' : 'Šipky + mezerník, Esc = zpět do hry', P.x + P.w / 2, P.y + P.h - 16);
