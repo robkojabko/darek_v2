@@ -27,7 +27,7 @@ function ensurePlayerName() {
 // každého vlastní. Dokud není vyplněná adresa databáze, tlačítko Online se nezobrazí.
 // =====================================================================
 const ONLINE = {
-  DATABASE_URL: 'VLOŽ_DATABASE_URL',   // např. https://darek-30b0c-default-rtdb.europe-west1.firebasedatabase.app
+  DATABASE_URL: 'https://darek-30b0c-default-rtdb.europe-west1.firebasedatabase.app',   // např. https://darek-30b0c-default-rtdb.europe-west1.firebasedatabase.app
   KEY: 'hra_darek_online_v1',
   SEND_EVERY: 0.25,     // s – nejčastější odesílání pozice
   HEARTBEAT: 4,         // s – i když stojím, dám vědět, že jsem tady
