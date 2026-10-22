@@ -29,7 +29,7 @@ function formatRunTime(sec) {
 
 // Stojí časovač kvůli otevřenému menu?
 function speedrunPaused() {
-  if (state.inventory || state.catalog || state.map || state.musicMenu || state.songMenu) return true;
+  if (state.inventory || state.catalog || state.map || state.musicMenu || state.songMenu || state.pauseMenu) return true;
   if (SPEEDRUN.PAUSE_IN_DIALOG && (state.dialog || state.scene || state.choice || state.giveMenu)) return true;
   return false;
 }

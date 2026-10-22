@@ -24,6 +24,7 @@ const MP = {
   COLORS: ['#8e2424', '#1f6b3a', '#6a2c8c', '#a65e12', '#0f6c7a', '#7a6a12', '#8c2c63', '#3b4a8c'],   // vesty ostatních
   ACTIVITY: { sachy: '♟', fotbalek: '⚽', kos: '🏀', mluvi: '💬', obchod: '🛒' },
   BUTTON: { x: 8, y: 38, w: 170, h: 26 },   // na úvodu pod hudbou
+  NAME_BUTTON: { x: 8, y: 66, w: 170, h: 26 },   // pod ním jméno (pod ním Kvalita, 30_kvalita.js)
   BADGE: { x: 600, y: 86, w: 190, h: 18 },  // ve hře pod energií (pod časovačem speedrunu)
 };
 {
@@ -214,6 +215,7 @@ function drawRemotePlayers() {
   const room = state.room, s = CONFIG.PLAYER_SIZE;
   for (const o of mpHere().sort((a, b) => a.dy - b.dy)) {
     const x = Math.round(room.x + o.dx), y = Math.round(room.y + o.dy);
+    if (!inView({ x, y, w: s, h: s }, 80)) continue;   // mimo záběr (30_kvalita.js)
     drawCharacterShadow({ x, y, w: s, h: s });
     drawFigure(x + s / 2, y + s, o.phase, o.blend, {
       face: playerFaceImg, fallback: CONFIG.PLAYER_COLOR,
@@ -247,17 +249,31 @@ function drawOnlineBadge() {
   ctx.fillText(text, b.x + 6, y + b.h / 2 + 1, b.w - 10);
 }
 
-// --- Tlačítko Online na úvodu ---
-const onlineButtonShown = () => mpReady() && state.screen === 'title' && !state.modePick && !state.lb && !state.musicMenu;
+// --- Tlačítka Online a jméno na úvodu (vlevo nahoře pod hudbou) ---
+const titleControlsActive = () => state.screen === 'title' && !state.modePick && !state.lb && !state.musicMenu;   // i Kvalita (30_kvalita.js)
+const onlineButtonShown = () => mpReady() && titleControlsActive();
+function changePlayerName() {
+  const name = cleanPlayerName(window.prompt(`Tvoje jméno (max ${SPEEDRUN.NAME_MAX} znaků – uvidí ho ostatní hráči i žebříček):`, mp.name));
+  if (!name) return;
+  mp.name = name;
+  storageSet(SPEEDRUN.NAME_KEY, name);
+}
 function takeOnlineTaps() {
-  if (!onlineButtonShown()) return;
+  if (!titleControlsActive()) return;
   input.events = input.events.filter((ev) => {
-    const hit = ev.type === 'tap' && ev.x !== null && pointInRect(ev.x, ev.y, MP.BUTTON, 4);
-    if (hit) { setOnline(!mp.on); playSound([[660, 0, 0.05]]); }
-    return !hit;
+    if (ev.type !== 'tap' || ev.x === null) return true;
+    if (onlineButtonShown() && pointInRect(ev.x, ev.y, MP.BUTTON, 4)) { setOnline(!mp.on); playSound([[660, 0, 0.05]]); return false; }
+    if (pointInRect(ev.x, ev.y, MP.NAME_BUTTON, 4)) { changePlayerName(); return false; }
+    return true;
   });
 }
 function drawOnlineButton() {
+  if (!titleControlsActive()) return;
+  const nb = MP.NAME_BUTTON;
+  roundRectPath(nb.x, nb.y, nb.w, nb.h, 6);
+  ctx.fillStyle = 'rgba(0, 0, 0, 0.45)'; ctx.fill();
+  ctx.font = 'bold 12px sans-serif'; ctx.textAlign = 'left'; ctx.textBaseline = 'middle'; ctx.fillStyle = '#ffffff';
+  ctx.fillText(mp.name ? `👤 ${mp.name}` : '👤 Nastavit jméno', nb.x + 8, nb.y + nb.h / 2 + 1, nb.w - 14);
   if (!onlineButtonShown()) return;
   const b = MP.BUTTON;
   roundRectPath(b.x, b.y, b.w, b.h, 6);

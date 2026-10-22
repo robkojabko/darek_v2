@@ -2699,6 +2699,7 @@ function teacherLook(t) {
 function drawTeachers() {
   for (const t of state.teachers) {
     const r = t.rect;
+    if (!inView(r, 80)) continue;   // mimo záběr (jmenovka je pod postavou)
     drawCharacterShadow(r);
     if (t.look) {
       drawFigure(r.x + r.w / 2, r.y + r.h, t.walkPhase || 0, t.walkBlend || 0, teacherLook(t));
@@ -2906,7 +2907,7 @@ function drawDialog() {
 // style = vzhled dveří z ROOM_ART (bez něj jednobarevný obdélník)
 function drawDoors(room, style) {
   for (const door of room.doors) {
-    if (door.hidden) continue;   // neviditelný průchod (konec schodů)
+    if (door.hidden || !inView(door)) continue;   // neviditelný průchod (konec schodů) nebo mimo záběr
     const partArt = door.part && room.parts ? ROOM_ART[room.parts.find((p) => p.id === door.part).art] : null;
     if (door.style) drawStyledDoor(door, DOOR_STYLES[door.style]);
     else if (partArt) drawStyledDoor(door, partArt.door);

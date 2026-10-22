@@ -264,6 +264,9 @@ function updatePlaying(dt) {
 
   const events = input.events.splice(0);
 
+  // nabídka Pozastaveno / Hlavní menu: hra stojí (31_menu.js)
+  if (state.pauseMenu) { pauseMenuEvents(events); return; }
+
   // otevřený seznam hudby: hra stojí (13_katalog.js)
   if (state.musicMenu) { musicMenuEvents(events); return; }
   updateStory(dt);   // Lili, Treplev v C202, minihra s dráty (17_pribehy.js)

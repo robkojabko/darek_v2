@@ -64,6 +64,8 @@ js/26_teplota.js      miniquest Teplota pro Láďu a výběr u školníka (kleš
 js/27_rozhovory.js    drobné rozhovory postav (Zita a Emma)
 js/28_speedrun.js     režim Speedrun (časovač) a žebříček přes Firebase Firestore (od kamaráda)
 js/29_multiplayer.js  online hráči: kdo má zapnuté Online, vidí ostatní ve stejné místnosti (Firebase Realtime Database)
+js/30_kvalita.js      kvalita grafiky (výchozí / nízká) a nekreslení věcí mimo obrazovku (od kamaráda)
+js/31_menu.js         ☰ Hlavní menu / Pozastaveno ve hře (od kamaráda, napojené na 29_multiplayer.js)
 js/15_hlavni.js       update/render podle obrazovky, herní smyčka, START (musí být poslední)
 obrazky/              hlavy 48 × 48 px: hrac.png, mala.png, krivacek.png, rauscher.png, holub.png, soumar.png, lencova.png, vesela.png, mraz.png …
 zvuky/                hudba: pozadí/ = hudba na pozadí (CONFIG.MUSIC_PLAYLIST), „Treplev.mp3“ (v C202 u Kluse), „fotbálek.mp3“ (u fotbálku), Mykyta/ = písničky od Mykyho
@@ -521,13 +523,45 @@ Další učitelé bez úkolu: Křiváček (kabinet2, hlava z `Křiváček oprava
 
 Uživatel chce postupně tři kroky: **1. hráči se vidí** (hotové), **2. chat / smajlíky** (spíš hotové hlášky než volné psaní, hrají to spolužáci), **3. společný svět** (společné úkoly, šachy a fotbálek proti sobě online).
 
-- **Krok 1:** na úvodu je vlevo nahoře pod hudbou přepínač „👥 Online: ZAP/VYP“ (`MP.BUTTON`, pamatuje se v `MP.ON_KEY`). Při prvním zapnutí se zeptá na jméno (stejné jako do žebříčku, `SPEEDRUN.NAME_KEY`).
-  - Každý hraje svou hru. Sdílí se jen místnost, poloha (px od rohu místnosti) a co hráč dělá (`a`: šachy, fotbálek, koš, rozhovor, obchod → ikonka u jména).
-  - Ostatní se kreslí jako Roman s jinou barvou vesty (`MP.COLORS` podle id) a jménem nad hlavou (`drawRemotePlayers` v `renderGame` před hráčem). V pohledu zepředu (ulice, bufet) se nekreslí. Postavička plynule dojede na poslední polohu (`MP.LERP`) a u toho jde.
-  - Ve hře je pod energií „👥 Online: 3 hráči (1 tady)“ (`drawOnlineBadge`).
-- **Databáze:** Firebase Realtime Database přes REST bez knihoven: vlastní záznam `hraci/<id>` = `{ n, r, x, y, a?, t }` se posílá PUTem (nejčastěji po 0,15 s, když stojí, jednou za 3 s), změny ostatních chodí proudem `EventSource`. `t` je čas serveru (`{".sv": "timestamp"}`). Kdo se neozval 12 s, není vidět, záznamy starší než 2 minuty smaže kdokoli online. Na úvodu, po vypnutí a při zavření stránky se vlastní záznam smaže.
-  - Adresa je v `MP.DB_URL`: uživatelův vlastní Firebase projekt `darek-online` (`https://darek-online-default-rtdb.europe-west1.firebasedatabase.app`). Žebříček je dál v kamarádově projektu `darek-30b0c` (Firestore). Bez adresy (`VLOŽ_…`) se přepínač Online neukáže. Ověřeno naostro dvěma hrami; pravidla odmítnou cizí pole i zápis mimo `hraci/<id>` (proto se celé `hraci` smazat nedá, jen po jednom). Pravidla databáze jsou v `tools/firebase_pravidla_multiplayer.json` (vložit do Firebase konzole → Realtime Database → Pravidla).
-  - **Test bez Firebase:** falešná databáze v Pythonu (REST + proud) a `index.html?mpdb=http://127.0.0.1:8001`. Dvě hry v headless Chrome přes DevTools protokol (`pip install websocket-client`) – vidí se, chůze, šachy, odchod do jiné místnosti, na úvod i vypnutí prošly.
+### Jak se hraje online
+
+- Hra je veřejně na **https://tondazajic08.github.io/hra_d-rek/** (GitHub Pages z `main`). Hráči můžou být kdekoli, stejná Wi-Fi není potřeba (ta je jen pro `tools/server.py` z počítače).
+- Na úvodu vlevo nahoře pod hudbou jsou pod sebou: **„👥 Online: ZAP/VYP“** (`MP.BUTTON`, pamatuje se v `MP.ON_KEY`), **„👤 jméno“** (`MP.NAME_BUTTON`, ťuknutí = změnit jméno, `changePlayerName`) a **Kvalita** (`30_kvalita.js`). Online jde zapnout i ve hře v menu ☰.
+- Při prvním zapnutí Online se hra zeptá na jméno. Je společné se žebříčkem (`SPEEDRUN.NAME_KEY`). Bez Online se na jméno neptá – Roman (dárek) hraje bez otázek.
+
+### Co krok 1 umí
+
+- Každý hraje svou hru – úkoly, peníze a věci zůstávají jeho. Sdílí se jen místnost, poloha (px od rohu místnosti) a co hráč dělá (`a`: `sachy`, `fotbalek`, `kos`, `mluvi`, `obchod` → ikonka ♟ ⚽ 🏀 💬 🛒 u jména, `MP.ACTIVITY`).
+- Ostatní se kreslí jako Roman s jinou barvou vesty (`MP.COLORS` podle id) a jménem v černém štítku nad hlavou (`drawRemotePlayers` v `renderGame` před hráčem). V pohledu zepředu (ulice, bufet) se nekreslí. Postavička plynule dojede na poslední polohu (`MP.LERP`) a u toho jde (nohy, ruce).
+- Ve hře je pod energií „👥 Online: 3 hráči (1 tady)“, se speedrunem o řádek níž (`drawOnlineBadge`, `MP.BADGE`). Na úvodu je u přepínače počet hráčů ve hře.
+- Každé otevření stránky je nový hráč (`mp.id`), takže dvě záložky = dva hráči.
+
+### Databáze
+
+- **Firebase Realtime Database** v uživatelově vlastním projektu **`darek-online`** (založil ho sám, účet `tonda.zajic08@gmail.com`): `MP.DB_URL` = `https://darek-online-default-rtdb.europe-west1.firebasedatabase.app`. Žebříček je dál v kamarádově projektu `darek-30b0c` (Firestore, `28_speedrun.js`) – jsou to dvě nezávislé věci.
+- Přes REST bez knihoven: vlastní záznam `hraci/<id>` = `{ n, r, x, y, a?, t }` se posílá PUTem (nejčastěji po 0,15 s, `MP.SEND_EVERY`, když hráč stojí, jednou za 3 s, `MP.HEARTBEAT`), změny ostatních chodí proudem `EventSource` (události `put` / `patch`, kopie v `mp.raw`, `mpSetAt`, `mpSync`). `t` je čas serveru (`{".sv": "timestamp"}`), rozdíl hodin se zjistí z vlastního záznamu (`mp.offset`).
+- Kdo se neozval 12 s (`MP.STALE`), není vidět. Záznamy starší než 2 minuty (`MP.PURGE`) smaže kdokoli online. Na úvodu, na závěru, po vypnutí a při zavření stránky (`pagehide`) se vlastní záznam smaže.
+- **Pravidla** jsou v `tools/firebase_pravidla_multiplayer.json` (Firebase konzole → Realtime Database → Pravidla → vložit → Publikovat). Číst jde jen `hraci`, zapisovat jen jednotlivé `hraci/<id>` s poli n (1–16 znaků), r, x, y, a, t (= čas serveru); cokoli jiného databáze odmítne. Proto se celé `hraci` smazat nedá, jen po jednom. **Při přidání nového pole (krok 2, 3) se musí upravit i pravidla**, jinak databáze odmítne celý zápis a hráči se přestanou vidět.
+- Firebase povoluje přístup odkudkoli (`Access-Control-Allow-Origin: *`), takže online jde i ze `jeden_soubor/hra_darek.html` otevřeného z disku.
+- Bez adresy (`VLOŽ_…`) se přepínač Online neukáže. Adresa jde dočasně přepsat v URL: `index.html?mpdb=http://127.0.0.1:8001`.
+
+### Testy
+
+- **Bez Firebase:** falešná databáze `python tools/falesna_databaze.py . 8001` (REST + proud `text/event-stream`, statické soubory hry) a `index.html?mpdb=http://127.0.0.1:8001`. Dvě hry v headless Chrome (`C:\Program Files\Google\Chrome\Application\chrome.exe --headless=new --remote-debugging-port=…`) řízené přes DevTools protokol z Pythonu (`pip install websocket-client`, `Runtime.evaluate`, snímek přes `canvas.toDataURL`). Herní smyčka se v testu pumpuje ručně `update(1/60)`.
+- Ověřené: vidí se navzájem na správném místě, chůze, ikonka u šachů (`openChess()`), odchod do jiné místnosti, návrat na úvod i vypnutí Online. Totéž prošlo i naostro proti `darek-online` (testovací záznamy se pak smažou ručně `curl -X DELETE …/hraci/<id>.json`).
+
+### Kamarádova větev `mptest` (nepřevzatá)
+
+- Kamarád (`robkojabko/darek_v2`) má ve větvi `mptest` vlastní online: `29_online.js` + `31_online_hry.js` (šachy a fotbálek proti sobě přes výzvy, přehled hráčů a jejich úkolů na klávese O, ✔ x/y nad hlavou, povinné jméno při startu hry), do své databáze `darek-30b0c` pod `mp/players`.
+- **Uživatel ho nechtěl** – multiplayer zůstává ten náš (`29_multiplayer.js`). Převzaté jsou jen novinky mimo online: `30_kvalita.js` (beze změn) a menu ☰ z jeho `29_online.js` (do `31_menu.js`, napojené na `mp.on` / `setOnline`). Při 22. 10. 2026 jeho online navíc nefungoval: pravidla jeho databáze povolovala jen n, r, x, y, c, t a odmítla zápis s q, qm, qd, qt a m.
+- Jeho kód výzev (`31_online_hry.js`, zprávy v poli `m` záznamu hráče, hostitel bílý / červení) se může hodit jako inspirace pro krok 3.
+
+## Menu ☰ a kvalita grafiky (od kamaráda)
+
+- **☰ Hlavní menu / Pozastaveno** (`31_menu.js`): tlačítko ve hře vlevo od inventáře (`MENU_BUTTON`) nebo Esc. Hra stojí (i časovač speedrunu, `speedrunPaused`). Položky: Pokračovat, 👥 Online ZAP/VYP (jen když je nastavená databáze), Kvalita, 🏠 Hlavní menu (uloží a jde na úvod). Online a Kvalita se přepnou a menu zůstane otevřené. Esc nejde otevřít v obchodě, v dialogu ani v jiném okně (`canOpenPause`), Esc tak nejdřív zavře to okno.
+- **Kvalita** (`30_kvalita.js`, uloží se v `hra_darek_kvalita_v1`): nízká = plátno v polovičním rozlišení bez `devicePixelRatio` (`renderScale` v `resize`), bez stínů canvasu a kreslí se jen každý druhý snímek (`shouldRender`). Logika hry běží stejně.
+- **Nekreslení mimo obrazovku** (`CULL`, `cullBegin` / `inView` / `cullReset`): v `renderGame` se přeskočí díly chodby, průchody, nábytek, dveře, předměty, učitelé a online hráči mimo záběr kamery (s okrajem). V přízemí to je asi 29 z 50 kusů nábytku. Mimo svět ve hře (úvod, minihry, rozhraní) `inView` vrací vždy true.
+- Ověřeno: všech 62 místností se vykreslí bez chyby ve výchozí i nízké kvalitě, menu zastaví hru, Esc menu zavře i otevře.
 
 ## Co je ještě v plánu
 

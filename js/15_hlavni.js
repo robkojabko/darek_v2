@@ -6,7 +6,9 @@
 function update(dt) {
   tickSpeedrun(dt);   // časovač režimu Speedrun (28_speedrun.js)
   updateMultiplayer(dt);   // online hráči (29_multiplayer.js)
-  takeOnlineTaps();        // tlačítko Online na úvodu
+  takeOnlineTaps();        // tlačítko Online a jméno na úvodu
+  takeQualityTaps();       // úvod: tlačítko Kvalita (30_kvalita.js)
+  takeMenuButtonTaps();    // ve hře: tlačítko ☰ Hlavní menu (31_menu.js)
   takeMuteTaps();
   takeMusicTaps();
   if (state.screen === 'playing') {
@@ -41,6 +43,7 @@ function update(dt) {
 }
 
 function render() {
+  cullReset();
   clearCanvas();   // i okraje širokého plátna na mobilu
   if (state.screen === 'title') renderTitle();
   else if (state.screen === 'end') renderEnd();
@@ -54,9 +57,12 @@ function render() {
   if (state.screen === 'playing') drawEnergyBar();   // hlad (17_pribehy.js)
   drawSpeedrunTimer(); // časovač ve hře (jen speedrun)
   drawOnlineBadge();   // kolik hráčů je online (29_multiplayer.js)
-  drawOnlineButton();  // tlačítko Online na úvodu
+  drawOnlineButton();  // tlačítko Online a jméno na úvodu
+  drawMenuButton();    // ☰ Hlavní menu ve hře (31_menu.js)
+  drawQualityButton(); // úvod: Kvalita (30_kvalita.js)
   drawMusicMenu();     // seznam písniček (P)
   drawModePick();      // výběr režimu při nové hře (úvod i závěr)
+  drawPauseMenu();     // Pozastaveno / Hlavní menu (31_menu.js)
   drawLeaderboard();   // okno žebříčku
 }
 
@@ -77,7 +83,7 @@ function frame(now) {
     accumulator -= CONFIG.FIXED_DT;
   }
 
-  render();
+  if (shouldRender()) render();   // nízká kvalita: každý druhý snímek (30_kvalita.js)
   requestAnimationFrame(frame);
 }
 
