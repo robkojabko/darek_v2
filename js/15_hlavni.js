@@ -6,9 +6,11 @@
 function update(dt) {
   tickSpeedrun(dt);   // časovač režimu Speedrun (28_speedrun.js)
   updateMultiplayer(dt);   // online hráči (29_multiplayer.js)
+  updateVoice();           // hlasový chat (34_hlas.js)
   takeOnlineTaps();        // tlačítko Online a jméno na úvodu
   takeQualityTaps();       // úvod: tlačítko Kvalita (30_kvalita.js)
   takeMenuButtonTaps();    // ve hře: tlačítko ☰ Hlavní menu (31_menu.js)
+  takeVoiceTaps();         // ve hře: 🎤 (34_hlas.js)
   takeEmoteTaps();         // ve hře: smajlíky (29_multiplayer.js)
   takeMuteTaps();
   takeMusicTaps();
@@ -73,6 +75,7 @@ function render() {
   drawOnlineButton();  // tlačítko Online a jméno na úvodu
   drawMenuButton();    // ☰ Hlavní menu ve hře (31_menu.js)
   drawEmoteUi();       // 😊 smajlíky ve hře (29_multiplayer.js)
+  drawVoiceButton();   // 🎤 hlas ve hře (34_hlas.js)
   drawQualityButton(); // úvod: Kvalita (30_kvalita.js)
   drawMusicMenu();     // seznam písniček (P)
   drawModePick();      // výběr režimu při nové hře (úvod i závěr)

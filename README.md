@@ -68,6 +68,7 @@ js/30_kvalita.js      kvalita grafiky (výchozí / nízká) a nekreslení věcí
 js/31_menu.js         ☰ Hlavní menu / Pozastaveno ve hře (od kamaráda, napojené na 29_multiplayer.js)
 js/32_pingpong.js     minihra pingpong u stolů v hale s pingpongem
 js/33_skiny.js        výběr startu (venku / ve skříňkách), Locker v Dolních šatnách a výběr skinu
+js/34_hlas.js         hlasový chat (WebRTC): ve stejné místnosti, hlasitost podle vzdálenosti, mluví se při držení V / 🎤
 js/15_hlavni.js       update/render podle obrazovky, herní smyčka, START (musí být poslední)
 obrazky/              hlavy 48 × 48 px: hrac.png, mala.png, krivacek.png, rauscher.png, holub.png, soumar.png, lencova.png, vesela.png, mraz.png …
 zvuky/                hudba: pozadí/ = hudba na pozadí (CONFIG.MUSIC_PLAYLIST), „Treplev.mp3“ (v C202 u Kluse), „fotbálek.mp3“ (u fotbálku), Mykyta/ = písničky od Mykyho
@@ -523,7 +524,7 @@ Další učitelé bez úkolu: Křiváček (kabinet2, hlava z `Křiváček oprava
 
 ## Multiplayer (`js/29_multiplayer.js`)
 
-Uživatel chce postupně tři kroky: **1. hráči se vidí** (hotové), **2. smajlíky** (hotové – uživatel chtěl 10 smajlíků na výběr, žádné psaní), **3. společný svět** (společné úkoly, šachy a fotbálek proti sobě online – zatím ne).
+Uživatel chce postupně tři kroky: **1. hráči se vidí** (hotové), **2. smajlíky** (hotové – uživatel chtěl 10 smajlíků na výběr, žádné psaní), **hlasový chat** (hotový, `js/34_hlas.js`), **3. společný svět** (společné úkoly, šachy a fotbálek proti sobě online – zatím ne).
 
 ### Jak se hraje online
 
@@ -543,18 +544,29 @@ Uživatel chce postupně tři kroky: **1. hráči se vidí** (hotové), **2. sma
 - Ve hře je při zapnutém Online tlačítko **😊** vlevo od ☰ (`MP.EMOTE_BUTTON`) nebo klávesa **T**. Otevře se panel s 10 smajlíky vpravo dole (`MP.EMOTE_PANEL`, levá půlka mobilu patří joysticku): 👋 😂 👍 😮 ❤️ 💀 😡 😎 🤔 🔥 (`MP.EMOTES`). Ťuknutí / klik nebo čísla **1–0** pošlou smajlík, Esc nebo ťuknutí mimo zavře (Esc pak neotevře menu ☰ – `stopImmediatePropagation`).
 - Smajlík je 3 s (`MP.EMOTE_TIME`) v bílé bublině nad jménem (`drawEmoteBubble`), u mě nad hlavou taky. V záznamu je jen po tu dobu: `e` = pořadí smajlíku, `ek` = pořadové číslo (stejný smajlík znovu = nová bublina).
 
+### Hlasový chat (`js/34_hlas.js`)
+
+- Zvuk jde **napřímo mezi prohlížeči (WebRTC)**, databáze slouží jen k navázání spojení: nabídka / odpověď (celé SDP i s adresami, čeká se na `iceGatheringState === 'complete'`, max 2,5 s) se pošle POSTem do schránky **`hlas/<id příjemce>/<klíč>`** `{ f, k: 'offer'|'answer', d, t }`. Příjemce schránku sleduje proudem (`voiceOpenInbox`), zprávu zpracuje a smaže; nepřečtenou nabídku smaže odesílatel, když se nespojí.
+- **Zapnutí:** tlačítko **🎤** ve hře vlevo od 😊 (`VOICE.BUTTON`, jen s Online), klávesa **V** nebo ☰ → „🎤 Hlas: ZAP/VYP“. Zapnutí požádá o mikrofon (`getUserMedia` s potlačením ozvěny a šumu). Bez Online hlas nejde, vypnutý Online hlas vypne. Nepamatuje se – po otevření hry je vždy vypnutý.
+- **Mluví se jen při držení V nebo 🎤** (vysílačka; stopa mikrofonu je jinak `enabled = false`). Tlačítko je pak červené s nápisem „mluvíš“. **Slyší jen ten, kdo má hlas zapnutý sám** (v záznamu hráče pole `v: 1`).
+- **Spojení jen s hráči ve stejné místnosti**, kteří mají `v`. Nabídku posílá vždy ten s menším id (`mp.id < o.id`). Odchod do jiné místnosti spojení zavře (po 3 s), nespojené do 15 s se zavře a zkusí znovu za 4 s (`VOICE.CONNECT_TIMEOUT`, `VOICE.RETRY`).
+- **Hlasitost podle vzdálenosti:** do 140 px plná, pak klesá až na 0,12 (`VOICE.NEAR / FAR / MIN_GAIN`). Příchozí zvuk jde přes Web Audio (`audio.ctx`, GainNode + AnalyserNode); Chrome ho tam pustí, jen když je proud zároveň ve ztlumeném `<audio>`. Kdo mluví, má u jména **🔊**.
+- **Ztlumení:** v ☰ jsou pod „Hlas“ až 2 hráči z místnosti s hlasem („🔊 Slyšíš: Bob“ ↔ „🔇 Ztlumený: Bob“), ztlumený má u jména 🔇. Pamatuje se jen do zavření hry.
+- **TURN:** jen STUN servery Googlu (`VOICE.ICE`). Některé sítě (školní Wi-Fi, mobilní data) přímé spojení nepustí – pak je potřeba TURN server (přeposílá zvuk), třeba účet zdarma na metered.ca, a dopsat ho do `VOICE.ICE`. Zatím nepřidaný.
+- Ověřeno se 3 headless Chromy (`--use-fake-device-for-media-stream` = pípající mikrofon, `--use-fake-ui-for-media-stream`, `--disable-features=WebRtcHideLocalIpsWithMdns`) proti falešné databázi: spojí se jen ti dva s hlasem, mluví jen při držení V / 🎤 (i dotykem), 🔊 u jména, hlasitost z dálky 0,44, ztlumení, rozpojení v jiné místnosti a nové spojení po návratu, vypnutí; schránky v databázi zůstanou prázdné.
+
 ### Databáze
 
 - **Firebase Realtime Database** v uživatelově vlastním projektu **`darek-online`** (založil ho sám, účet `tonda.zajic08@gmail.com`): `MP.DB_URL` = `https://darek-online-default-rtdb.europe-west1.firebasedatabase.app`. Žebříček je dál v kamarádově projektu `darek-30b0c` (Firestore, `28_speedrun.js`) – jsou to dvě nezávislé věci.
-- Přes REST bez knihoven: vlastní záznam `hraci/<id>` = `{ n, r, x, y, a?, e?, ek?, s?, t }` (`e`/`ek` smajlík, `s` = id skinu, když není výchozí) se posílá PUTem (nejčastěji po 0,15 s, `MP.SEND_EVERY`, když hráč stojí, jednou za 3 s, `MP.HEARTBEAT`), změny ostatních chodí proudem `EventSource` (události `put` / `patch`, kopie v `mp.raw`, `mpSetAt`, `mpSync`). `t` je čas serveru (`{".sv": "timestamp"}`), rozdíl hodin se zjistí z vlastního záznamu (`mp.offset`).
+- Přes REST bez knihoven: vlastní záznam `hraci/<id>` = `{ n, r, x, y, a?, e?, ek?, s?, v?, t }` (`e`/`ek` smajlík, `s` = id skinu, když není výchozí, `v: 1` = má zapnutý hlas) se posílá PUTem (nejčastěji po 0,15 s, `MP.SEND_EVERY`, když hráč stojí, jednou za 3 s, `MP.HEARTBEAT`), změny ostatních chodí proudem `EventSource` (události `put` / `patch`, kopie v `mp.raw`, `mpSetAt`, `mpSync`). `t` je čas serveru (`{".sv": "timestamp"}`), rozdíl hodin se zjistí z vlastního záznamu (`mp.offset`).
 - Kdo se neozval 12 s (`MP.STALE`), není vidět. Záznamy starší než 2 minuty (`MP.PURGE`) smaže kdokoli online. Na úvodu, na závěru, po vypnutí a při zavření stránky (`pagehide`) se vlastní záznam smaže.
-- **Pravidla** jsou v `tools/firebase_pravidla_multiplayer.json` (Firebase konzole → Realtime Database → Pravidla → vložit → Publikovat). Číst jde jen `hraci`, zapisovat jen jednotlivé `hraci/<id>` s poli n (1–16 znaků), r, x, y, a, e (0–9), ek, s (do 24 znaků), t (= čas serveru); cokoli jiného databáze odmítne. Proto se celé `hraci` smazat nedá, jen po jednom. **Při přidání nového pole (krok 2, 3) se musí upravit i pravidla**, jinak databáze odmítne celý zápis a hráči se přestanou vidět.
+- **Pravidla** jsou v `tools/firebase_pravidla_multiplayer.json` (Firebase konzole → Realtime Database → Pravidla → vložit → Publikovat). Číst jde jen `hraci` a schránky `hlas/<id>`, zapisovat jen jednotlivé `hraci/<id>` s poli n (1–16 znaků), r, x, y, a, e (0–9), ek, s (do 24 znaků), v (= 1), t (= čas serveru) a zprávy `hlas/<id>/<klíč>` s poli f, k (offer / answer), d (do 20 000 znaků), t; cokoli jiného databáze odmítne. Proto se celé `hraci` smazat nedá, jen po jednom. **Při přidání nového pole (krok 2, 3) se musí upravit i pravidla**, jinak databáze odmítne celý zápis a hráči se přestanou vidět.
 - Firebase povoluje přístup odkudkoli (`Access-Control-Allow-Origin: *`), takže online jde i ze `jeden_soubor/hra_darek.html` otevřeného z disku.
 - Bez adresy (`VLOŽ_…`) se přepínač Online neukáže. Adresa jde dočasně přepsat v URL: `index.html?mpdb=http://127.0.0.1:8001`.
 
 ### Testy
 
-- **Bez Firebase:** falešná databáze `python tools/falesna_databaze.py . 8001` (REST + proud `text/event-stream`, statické soubory hry) a `index.html?mpdb=http://127.0.0.1:8001`. Dvě hry v headless Chrome (`C:\Program Files\Google\Chrome\Application\chrome.exe --headless=new --remote-debugging-port=…`) řízené přes DevTools protokol z Pythonu (`pip install websocket-client`, `Runtime.evaluate`, snímek přes `canvas.toDataURL`). Herní smyčka se v testu pumpuje ručně `update(1/60)`.
+- **Bez Firebase:** falešná databáze `python tools/falesna_databaze.py . 8001` (REST GET/PUT/POST/DELETE na libovolné cestě + proud `text/event-stream`, statické soubory hry; pravidla nekontroluje) a `index.html?mpdb=http://127.0.0.1:8001`. Dvě hry v headless Chrome (`C:\Program Files\Google\Chrome\Application\chrome.exe --headless=new --remote-debugging-port=…`) řízené přes DevTools protokol z Pythonu (`pip install websocket-client`, `Runtime.evaluate`, snímek přes `canvas.toDataURL`). Herní smyčka se v testu pumpuje ručně `update(1/60)`.
 - Ověřené: vidí se navzájem na správném místě, chůze, ikonka u šachů (`openChess()`), odchod do jiné místnosti, návrat na úvod i vypnutí Online; smajlíky (tlačítko, T a čísla, druhý hráč vidí bublinu, po 3 s pole `e` zmizí); skin druhého hráče. Totéž prošlo i naostro proti `darek-online` (testovací záznamy se pak smažou ručně `curl -X DELETE …/hraci/<id>.json`).
 
 ### Kamarádova větev `mptest` (nepřevzatá)

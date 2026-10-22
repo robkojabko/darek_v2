@@ -1,13 +1,14 @@
-# Falešná Firebase Realtime Database na testy multiplayeru (jen /hraci, REST + proud EventSource) + statické soubory hry
+# Falešná Firebase Realtime Database na testy multiplayeru (REST: GET/PUT/POST/DELETE + proud EventSource) + statické soubory hry
+# Umí libovolné cesty (hraci/…, hlas/<id>/…); pravidla nekontroluje.
 # Spuštění: python tools/falesna_databaze.py . 8001   → hra: http://127.0.0.1:8001/index.html?mpdb=http://127.0.0.1:8001
-import json, os, sys, time, threading, queue
+import json, sys, time, threading, queue, random, string
 from http.server import ThreadingHTTPServer, SimpleHTTPRequestHandler
 
 ROOT = sys.argv[1]
 PORT = int(sys.argv[2]) if len(sys.argv) > 2 else 8001
 DB = {}
 LOCK = threading.Lock()
-CLIENTS = []
+CLIENTS = []   # (cesta jako seznam, fronta)
 
 def resolve(v):
     if isinstance(v, dict):
@@ -16,10 +17,30 @@ def resolve(v):
         return {k: resolve(x) for k, x in v.items()}
     return v
 
-def broadcast(path, data):
-    msg = 'event: put\ndata: ' + json.dumps({'path': path, 'data': data}) + '\n\n'
-    for q in list(CLIENTS):
-        q.put(msg)
+def get(parts):
+    o = DB
+    for k in parts:
+        if not isinstance(o, dict) or k not in o: return None
+        o = o[k]
+    return o
+
+def set_at(parts, v):
+    o = DB
+    for k in parts[:-1]:
+        if not isinstance(o.get(k), dict): o[k] = {}
+        o = o[k]
+    if v is None: o.pop(parts[-1], None)
+    else: o[parts[-1]] = v
+
+def broadcast(parts, data):
+    for cp, q in list(CLIENTS):
+        if parts[:len(cp)] == cp:   # změna uvnitř sledované cesty
+            q.put('event: put\ndata: ' + json.dumps({'path': '/' + '/'.join(parts[len(cp):]), 'data': data}) + '\n\n')
+        elif cp[:len(parts)] == parts:   # přepsaný předek sledované cesty
+            q.put('event: put\ndata: ' + json.dumps({'path': '/', 'data': get(cp)}) + '\n\n')
+
+def push_id():
+    return '-' + ''.join(random.choice(string.ascii_letters + string.digits) for _ in range(19))
 
 class H(SimpleHTTPRequestHandler):
     def __init__(self, *a, **k):
@@ -31,25 +52,30 @@ class H(SimpleHTTPRequestHandler):
         super().end_headers()
     def do_OPTIONS(self):
         self.send_response(204)
-        self.send_header('Access-Control-Allow-Methods', 'GET,PUT,DELETE,PATCH')
+        self.send_header('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE,PATCH')
         self.send_header('Access-Control-Allow-Headers', '*')
         self.end_headers()
-    def key(self):
+    def parts(self):
         p = self.path.split('?')[0]
-        if not p.startswith('/hraci') or not p.endswith('.json'): return None
-        rest = p[len('/hraci'):-len('.json')].strip('/')
-        return rest
+        if not p.endswith('.json'): return None
+        return [x for x in p[:-len('.json')].split('/') if x]
+    def reply(self, data):
+        body = json.dumps(data).encode()
+        self.send_response(200); self.send_header('Content-Type', 'application/json'); self.end_headers(); self.wfile.write(body)
+    def body(self):
+        n = int(self.headers.get('Content-Length', 0))
+        return resolve(json.loads(self.rfile.read(n) or b'null'))
     def do_GET(self):
-        k = self.key()
-        if k is None: return super().do_GET()
-        if k == '' and 'text/event-stream' in self.headers.get('Accept', ''):
+        parts = self.parts()
+        if parts is None: return super().do_GET()
+        if 'text/event-stream' in self.headers.get('Accept', ''):
             self.send_response(200)
             self.send_header('Content-Type', 'text/event-stream')
             self.end_headers()
             q = queue.Queue()
             with LOCK:
-                snap = dict(DB) or None
-                CLIENTS.append(q)
+                snap = get(parts)
+                CLIENTS.append((parts, q))
             try:
                 self.wfile.write(('event: put\ndata: ' + json.dumps({'path': '/', 'data': snap}) + '\n\n').encode()); self.wfile.flush()
                 while True:
@@ -59,24 +85,25 @@ class H(SimpleHTTPRequestHandler):
             except Exception:
                 pass
             finally:
-                CLIENTS.remove(q)
+                CLIENTS.remove((parts, q))
             return
-        with LOCK: data = DB if k == '' else DB.get(k)
-        body = json.dumps(data or None).encode()
-        self.send_response(200); self.send_header('Content-Type', 'application/json'); self.end_headers(); self.wfile.write(body)
+        with LOCK: data = get(parts)
+        self.reply(data)
     def do_PUT(self):
-        k = self.key()
-        n = int(self.headers.get('Content-Length', 0))
-        v = resolve(json.loads(self.rfile.read(n) or b'null'))
+        parts, v = self.parts(), self.body()
         with LOCK:
-            DB[k] = v
-        broadcast('/' + k, v)
-        body = json.dumps(v).encode()
-        self.send_response(200); self.send_header('Content-Type', 'application/json'); self.end_headers(); self.wfile.write(body)
+            set_at(parts, v); broadcast(parts, v)
+        self.reply(v)
+    def do_POST(self):
+        parts, v = self.parts(), self.body()
+        k = push_id()
+        with LOCK:
+            set_at(parts + [k], v); broadcast(parts + [k], v)
+        self.reply({'name': k})
     def do_DELETE(self):
-        k = self.key()
-        with LOCK: DB.pop(k, None)
-        broadcast('/' + k, None)
-        self.send_response(200); self.send_header('Content-Type', 'application/json'); self.end_headers(); self.wfile.write(b'null')
+        parts = self.parts()
+        with LOCK:
+            set_at(parts, None); broadcast(parts, None)
+        self.reply(None)
 
 ThreadingHTTPServer(('127.0.0.1', PORT), H).serve_forever()

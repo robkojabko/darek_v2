@@ -13,8 +13,23 @@
         "e": { ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() < 10" },
         "ek": { ".validate": "newData.isNumber()" },
         "s": { ".validate": "newData.isString() && newData.val().length <= 24" },
+        "v": { ".validate": "newData.val() == 1" },
         "t": { ".validate": "newData.val() == now" },
         "$other": { ".validate": false }
+      }
+    },
+    "hlas": {
+      "$to": {
+        ".read": "$to.length <= 24",
+        "$msg": {
+          ".write": "$to.length <= 24",
+          ".validate": "newData.hasChildren(['f', 'k', 'd', 't'])",
+          "f": { ".validate": "newData.isString() && newData.val().length <= 24" },
+          "k": { ".validate": "newData.val() == 'offer' || newData.val() == 'answer'" },
+          "d": { ".validate": "newData.isString() && newData.val().length <= 20000" },
+          "t": { ".validate": "newData.val() == now" },
+          "$other": { ".validate": false }
+        }
       }
     }
   }

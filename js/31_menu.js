@@ -13,6 +13,7 @@ state.pauseMenu = null;                                // otevřená nabídka { 
 const pauseItems = () => [
   { id: 'resume', label: '▶ Pokračovat' },
   ...(mpReady() ? [{ id: 'online', label: `👥 Online: ${mp.on ? 'ZAP' : 'VYP'}` }] : []),   // 29_multiplayer.js
+  ...voicePauseItems(),                                                                     // 🎤 hlas a ztlumení hráčů (34_hlas.js)
   { id: 'quality', label: qualityLabel() },                                                  // 30_kvalita.js
   { id: 'menu', label: '🏠 Hlavní menu' },
 ];
@@ -52,6 +53,7 @@ function pauseMenuEvents(events) {
     if (i === null) continue;
     const item = pauseItems()[i];
     if (item.id === 'online') { setOnline(!mp.on); m.sel = i; continue; }       // zapnout / vypnout online, nabídka zůstane
+    if (voicePauseAction(item.id)) { m.sel = i; continue; }                     // hlas zap/vyp, ztlumit hráče
     if (item.id === 'quality') { toggleQuality(); m.sel = i; continue; }        // výchozí / nízká kvalita
     state.pauseMenu = null;
     if (item.id === 'menu') { saveProgress(); goToTitle(); }   // postup (i čas speedrunu) se uloží, v menu je „Pokračovat“
@@ -84,7 +86,7 @@ function drawPauseMenu() {
   pauseRows().forEach((r, i) => {
     roundRectPath(r.x, r.y, r.w, r.h, 10);
     const it = pauseItems()[i];
-    ctx.fillStyle = i === m.sel && !isTouchHint() ? '#ffe9a8' : it.id === 'online' && mp.on ? '#d9f2d9' : '#fffaf0'; ctx.fill();
+    ctx.fillStyle = i === m.sel && !isTouchHint() ? '#ffe9a8' : (it.id === 'online' && mp.on) || (it.id === 'voice' && voice.on) ? '#d9f2d9' : '#fffaf0'; ctx.fill();
     ctx.strokeStyle = 'rgba(59, 42, 28, 0.25)'; ctx.lineWidth = 1.5; ctx.stroke();
     ctx.font = 'bold 17px sans-serif'; ctx.fillStyle = '#2b1d14'; ctx.textAlign = 'center';
     ctx.fillText(it.label, r.x + r.w / 2, r.y + r.h / 2 + 1);
