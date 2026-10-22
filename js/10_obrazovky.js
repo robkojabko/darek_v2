@@ -49,6 +49,7 @@ function setScreen(screen) {
 
 // mode: null = hlavní hra, 'vrah' = Vrah z učebny C109
 function startPlaying(progress, mode = null, speedrun = false) {
+  if (!ensurePlayerName()) return;   // jméno se volí jednou při startu hry a pamatuje se (29_online.js)
   state.mode = mode;
   resetGame(progress);
   // časovač: nová hra podle výběru režimu, načtená hra pokračuje s uloženým časem (28_speedrun.js)

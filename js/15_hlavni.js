@@ -5,8 +5,11 @@
 // --- Rozcestník: co se má v daném kroku/snímku dít podle obrazovky ---
 function update(dt) {
   tickSpeedrun(dt);   // časovač režimu Speedrun (28_speedrun.js)
+  onlineTick(dt);     // spojení a pozice ostatních hráčů (29_online.js)
   takeMuteTaps();
   takeMusicTaps();
+  takeTitleControlTaps();   // úvod: Online a jméno vlevo nahoře (29_online.js)
+  takeMenuButtonTaps();     // ve hře: tlačítko Hlavní menu (29_online.js)
   if (state.screen === 'playing') {
     takeCatalogTaps();
     takeInventoryTaps();
@@ -51,8 +54,12 @@ function render() {
   drawMusicButton();   // co hraje (ve hře a na úvodu)
   if (state.screen === 'playing') drawEnergyBar();   // hlad (17_pribehy.js)
   drawSpeedrunTimer(); // časovač ve hře (jen speedrun)
+  drawOnlineHud();     // stav online ve hře (29_online.js)
+  drawMenuButton();    // ☰ Hlavní menu ve hře (29_online.js)
+  drawTitleControls(); // úvod: Online a jméno (29_online.js)
   drawMusicMenu();     // seznam písniček (P)
   drawModePick();      // výběr režimu při nové hře (úvod i závěr)
+  drawPauseMenu();     // Pozastaveno / Hlavní menu (29_online.js)
   drawLeaderboard();   // okno žebříčku
 }
 

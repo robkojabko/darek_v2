@@ -29,7 +29,7 @@ function formatRunTime(sec) {
 
 // Stojí časovač kvůli otevřenému menu?
 function speedrunPaused() {
-  if (state.inventory || state.catalog || state.map || state.musicMenu || state.songMenu) return true;
+  if (state.inventory || state.catalog || state.map || state.musicMenu || state.songMenu || state.pauseMenu) return true;
   if (SPEEDRUN.PAUSE_IN_DIALOG && (state.dialog || state.scene || state.choice || state.giveMenu)) return true;
   return false;
 }
@@ -197,12 +197,8 @@ function scoreButtonPress() {
   if (!s || !s.done || s.sending) return;
   const mode = state.mode === 'vrah' ? 'vrah' : 'hra';
   if (s.submitted) { openLeaderboard(mode); return; }
-  if (!s.name) {   // jméno se ptá jednou, pamatuje se pro příště
-    const name = cleanPlayerName(window.prompt(`Jméno do žebříčku (max ${SPEEDRUN.NAME_MAX} znaků):`, storageGet(SPEEDRUN.NAME_KEY) || ''));
-    if (!name) return;
-    s.name = name;
-    storageSet(SPEEDRUN.NAME_KEY, name);
-  }
+  s.name = playerName();   // jméno hráče se volí při startu hry (29_online.js) – tady se už neptá
+  if (!s.name) return;
   s.sending = true; s.failed = false;
   postScore(mode, s.name, s.t)
     .then(() => { s.sending = false; s.submitted = true; openLeaderboard(mode); })
