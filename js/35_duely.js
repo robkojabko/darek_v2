@@ -75,7 +75,7 @@ function duelTakeMsg(key, m) {
     duelStart({ game: p.game, host: true, opp: m.f, oppName: name, bet: p.betValue, id: m.d });
   } else if (m.k === 'decline') {
     const p = duel.pick;
-    if (p && p.d === m.d) { p.status = 'no'; p.msg = m.why === 'busy' ? `${name} teď nemůže` : m.why === 'money' ? `${name} nemá dost peněz` : `${name} odmítl/a`; p.until = performance.now() + 2500; }
+    if (p && p.d === m.d) { p.status = 'no'; p.msg = m.why === 'busy' ? `${name} teď nemůže` : m.why === 'money' ? `${name} nemá dost peněz` : `${name} odmítl/a`; }
   } else if (m.k === 'cancel') {
     if (duel.invite && duel.invite.d === m.d) duel.invite = null;
     if (duel.cur && duel.cur.id === m.d && !duel.cur.seen) duelEnd('void');
@@ -226,10 +226,8 @@ function updateDuel() {
   const now = performance.now();
   if (duel.invite && now > duel.invite.until) duel.invite = null;
   const p = duel.pick;
-  if (p && p.status !== 'pick' && now > p.until) {
-    if (p.status === 'wait') { duelMsg(p.opp, 'cancel', { d: p.d }); p.status = 'no'; p.msg = `${p.oppName} neodpovídá`; p.until = now + 2500; }
-    else duel.pick = null;
-  }
+  // odmítnutí zůstane, dokud ho hráč nezavře – jinak by jeho Enter spustil hru v menu pod ním
+  if (p && p.status === 'wait' && now > p.until) { duelMsg(p.opp, 'cancel', { d: p.d }); p.status = 'no'; p.msg = `${p.oppName} neodpovídá`; }
   if (p && !['chess', 'foosball', 'pingpong'].includes(state.screen)) duel.pick = null;
   const d = duel.cur;
   if (d) {
@@ -273,9 +271,13 @@ function duelPickBet(p) {
   return bets[p.bet] || 0;
 }
 window.addEventListener('keydown', (e) => {
-  if (e.repeat) return;
-  if (duel.pick) { duelPickKey(e.code); e.preventDefault(); e.stopImmediatePropagation(); return; }
+  if (duel.pick) {
+    if (!e.repeat) duelPickKey(e.code);
+    e.preventDefault(); e.stopImmediatePropagation();
+    return;
+  }
   if (duelInviteShown()) {
+    if (e.repeat) { e.preventDefault(); e.stopImmediatePropagation(); return; }
     if (e.code === 'KeyY' || e.code === 'Enter') duelInviteAnswer(true);
     else if (e.code === 'KeyN' || e.code === 'Escape') duelInviteAnswer(false);
     else return;
