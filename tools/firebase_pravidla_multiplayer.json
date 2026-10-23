@@ -5,17 +5,48 @@
       "$id": {
         ".write": "$id.length <= 24",
         ".validate": "newData.hasChildren(['n', 'r', 'x', 'y', 't'])",
-        "n": { ".validate": "newData.isString() && newData.val().length >= 1 && newData.val().length <= 16" },
-        "r": { ".validate": "newData.isString() && newData.val().length <= 40" },
-        "x": { ".validate": "newData.isNumber()" },
-        "y": { ".validate": "newData.isNumber()" },
-        "a": { ".validate": "newData.isString() && newData.val().length <= 12" },
-        "e": { ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() < 10" },
-        "ek": { ".validate": "newData.isNumber()" },
-        "s": { ".validate": "newData.isString() && newData.val().length <= 24" },
-        "v": { ".validate": "newData.val() == 1" },
-        "t": { ".validate": "newData.val() == now" },
-        "$other": { ".validate": false }
+        "n": {
+          ".validate": "newData.isString() && newData.val().length >= 1 && newData.val().length <= 16"
+        },
+        "r": {
+          ".validate": "newData.isString() && newData.val().length <= 40"
+        },
+        "x": {
+          ".validate": "newData.isNumber()"
+        },
+        "y": {
+          ".validate": "newData.isNumber()"
+        },
+        "a": {
+          ".validate": "newData.isString() && newData.val().length <= 12"
+        },
+        "e": {
+          ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() < 10"
+        },
+        "ek": {
+          ".validate": "newData.isNumber()"
+        },
+        "s": {
+          ".validate": "newData.isString() && newData.val().length <= 24"
+        },
+        "v": {
+          ".validate": "newData.val() == 1"
+        },
+        "m": {
+          ".validate": "newData.isNumber()"
+        },
+        "qn": {
+          ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 100"
+        },
+        "qd": {
+          ".validate": "newData.isString() && newData.val().length <= 600"
+        },
+        "t": {
+          ".validate": "newData.val() == now"
+        },
+        "$other": {
+          ".validate": false
+        }
       }
     },
     "hlas": {
@@ -24,11 +55,69 @@
         "$msg": {
           ".write": "$to.length <= 24",
           ".validate": "newData.hasChildren(['f', 'k', 'd', 't'])",
-          "f": { ".validate": "newData.isString() && newData.val().length <= 24" },
-          "k": { ".validate": "newData.val() == 'offer' || newData.val() == 'answer'" },
-          "d": { ".validate": "newData.isString() && newData.val().length <= 20000" },
-          "t": { ".validate": "newData.val() == now" },
-          "$other": { ".validate": false }
+          "f": {
+            ".validate": "newData.isString() && newData.val().length <= 24"
+          },
+          "k": {
+            ".validate": "newData.val() == 'offer' || newData.val() == 'answer'"
+          },
+          "d": {
+            ".validate": "newData.isString() && newData.val().length <= 20000"
+          },
+          "t": {
+            ".validate": "newData.val() == now"
+          },
+          "$other": {
+            ".validate": false
+          }
+        }
+      }
+    },
+    "duely": {
+      "$to": {
+        ".read": "$to.length <= 24",
+        "$msg": {
+          ".write": "$to.length <= 24",
+          ".validate": "newData.hasChildren(['f', 'k', 'd', 't'])",
+          "f": {
+            ".validate": "newData.isString() && newData.val().length <= 24"
+          },
+          "n": {
+            ".validate": "newData.isString() && newData.val().length <= 16"
+          },
+          "k": {
+            ".validate": "newData.val() == 'invite' || newData.val() == 'accept' || newData.val() == 'decline' || newData.val() == 'cancel'"
+          },
+          "g": {
+            ".validate": "newData.val() == 'chess' || newData.val() == 'foos' || newData.val() == 'pp'"
+          },
+          "b": {
+            ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 100"
+          },
+          "d": {
+            ".validate": "newData.isString() && newData.val().length <= 40"
+          },
+          "why": {
+            ".validate": "newData.isString() && newData.val().length <= 12"
+          },
+          "t": {
+            ".validate": "newData.val() == now"
+          },
+          "$other": {
+            ".validate": false
+          }
+        }
+      }
+    },
+    "hry": {
+      "$id": {
+        ".read": "$id.length <= 40",
+        ".write": "$id.length <= 40",
+        "$side": {
+          ".validate": "($side == 'h' || $side == 'c') && newData.hasChildren(['s', 't'])",
+          "t": {
+            ".validate": "newData.val() == now"
+          }
         }
       }
     }

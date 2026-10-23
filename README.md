@@ -69,6 +69,7 @@ js/31_menu.js         ☰ Hlavní menu / Pozastaveno ve hře (od kamaráda, napo
 js/32_pingpong.js     minihra pingpong u stolů v hale s pingpongem
 js/33_skiny.js        výběr startu (venku / ve skříňkách), Locker v Dolních šatnách a výběr skinu
 js/34_hlas.js         hlasový chat (WebRTC): ve stejné místnosti, hlasitost podle vzdálenosti, mluví se při držení V / 🎤
+js/35_duely.js        online duely: šachy, fotbálek a ping pong proti jinému hráči se sázkou
 js/15_hlavni.js       update/render podle obrazovky, herní smyčka, START (musí být poslední)
 obrazky/              hlavy 48 × 48 px: hrac.png, mala.png, krivacek.png, rauscher.png, holub.png, soumar.png, lencova.png, vesela.png, mraz.png …
 zvuky/                hudba: pozadí/ = hudba na pozadí (CONFIG.MUSIC_PLAYLIST), „Treplev.mp3“ (v C202 u Kluse), „fotbálek.mp3“ (u fotbálku), Mykyta/ = písničky od Mykyho
@@ -524,7 +525,7 @@ Další učitelé bez úkolu: Křiváček (kabinet2, hlava z `Křiváček oprava
 
 ## Multiplayer (`js/29_multiplayer.js`)
 
-Uživatel chce postupně tři kroky: **1. hráči se vidí** (hotové), **2. smajlíky** (hotové – uživatel chtěl 10 smajlíků na výběr, žádné psaní), **hlasový chat** (hotový, `js/34_hlas.js`), **3. společný svět** (společné úkoly, šachy a fotbálek proti sobě online – zatím ne).
+Uživatel chce postupně tři kroky: **1. hráči se vidí** (hotové), **2. smajlíky** (hotové – uživatel chtěl 10 smajlíků na výběr, žádné psaní), **hlasový chat** (hotový, `js/34_hlas.js`), **3. společný svět** – hotové: online duely (šachy, fotbálek, ping pong) se sázkou a postup v úkolech ostatních hráčů (viz níž).
 
 ### Jak se hraje online
 
@@ -555,12 +556,20 @@ Uživatel chce postupně tři kroky: **1. hráči se vidí** (hotové), **2. sma
 - **TURN:** jen STUN servery Googlu (`VOICE.ICE`). Některé sítě (školní Wi-Fi, mobilní data) přímé spojení nepustí – pak je potřeba TURN server (přeposílá zvuk), třeba účet zdarma na metered.ca, a dopsat ho do `VOICE.ICE`. Zatím nepřidaný.
 - Ověřeno se 3 headless Chromy (`--use-fake-device-for-media-stream` = pípající mikrofon, `--use-fake-ui-for-media-stream`, `--disable-features=WebRtcHideLocalIpsWithMdns`) proti falešné databázi: spojí se jen ti dva s hlasem, mluví jen při držení V / 🎤 (i dotykem), 🔊 u jména, hlasitost z dálky 0,44, ztlumení, rozpojení v jiné místnosti a nové spojení po návratu, vypnutí; schránky v databázi zůstanou prázdné.
 
+### Online duely a postup v úkolech (`js/35_duely.js`)
+
+- **Postup v úkolech:** vlastní záznam má navíc `qn` (počet úkolů hlavní hry) a `qd` (id hotových úkolů oddělená čárkou) a `m` (peníze, kvůli sázce). Jmenovka ukazuje `jméno · 3/10`, v seznamu úkolů (Q) je u úkolu `👥 ✔ jména` online hráčů, kteří ho mají hotový (`mpQuestDoneBy`).
+- **Výzva:** v menu šachů / fotbálku / ping pongu řádek „👥 Online – vyzvat hráče“ (jen s Online) → výběr hráče (online kdekoli, ze stejné místnosti nahoře) a sázky 0/10/25/50/100 Kč (nejvýš kolik má méně bohatý). Zprávy `duely/<id>/<klíč>` = `{ f, n, k: invite|accept|decline|cancel, g: chess|foos|pp, b, d, why?, t }`, po přečtení se smažou. Výzva platí 30 s; vyzvaný ji vidí ve hře nebo v menu / na konci minihry (Y / Enter = přijmout, N / Esc = odmítnout).
+- **Zápas:** `hry/<id zápasu>/h` (vyzývatel) a `/c` (vyzvaný), každý PUTuje jen svou část s pořadím `s` a časem `t`. Šachy: celý seznam tahů `m` („z-do[proměna]“, pole 0–63), soupeřův tah se přijme, jen když je podle pravidel; vyzývatel hraje bílé, černý má desku otočenou. Fotbálek a ping pong: vyzývatel počítá míček a posílá stav (~15× za s), vyzvaný posílá jen svou tyč / pádlo a kopy / podání. U ping pongu vyzvaný vidí stůl otočený (je dole) a má pádlo o `PP.ONLINE_REACH` větší kvůli zpoždění.
+- **Sázka:** oba zaplatí na začátku, vítěz dostane obě, remíza a nepřipojený soupeř = vrácení. Odchod, vzdání nebo 10 s bez zprávy (`DUEL.TIMEOUT`) = prohra. Peníze jsou jen v prohlížeči, takže podvést se dá (žádný server).
+- **Stará pravidla databáze:** když databáze odmítne záznam s `m` / `qn` / `qd` (401), hra je dál posílá bez nich (`mp.legacy`) a duely se neukážou – hráči se tedy vidí i před publikováním nových pravidel.
+
 ### Databáze
 
 - **Firebase Realtime Database** v uživatelově vlastním projektu **`darek-online`** (založil ho sám, účet `tonda.zajic08@gmail.com`): `MP.DB_URL` = `https://darek-online-default-rtdb.europe-west1.firebasedatabase.app`. Žebříček je dál v kamarádově projektu `darek-30b0c` (Firestore, `28_speedrun.js`) – jsou to dvě nezávislé věci.
 - Přes REST bez knihoven: vlastní záznam `hraci/<id>` = `{ n, r, x, y, a?, e?, ek?, s?, v?, t }` (`e`/`ek` smajlík, `s` = id skinu, když není výchozí, `v: 1` = má zapnutý hlas) se posílá PUTem (nejčastěji po 0,15 s, `MP.SEND_EVERY`, když hráč stojí, jednou za 3 s, `MP.HEARTBEAT`), změny ostatních chodí proudem `EventSource` (události `put` / `patch`, kopie v `mp.raw`, `mpSetAt`, `mpSync`). `t` je čas serveru (`{".sv": "timestamp"}`), rozdíl hodin se zjistí z vlastního záznamu (`mp.offset`).
 - Kdo se neozval 12 s (`MP.STALE`), není vidět. Záznamy starší než 2 minuty (`MP.PURGE`) smaže kdokoli online. Na úvodu, na závěru, po vypnutí a při zavření stránky (`pagehide`) se vlastní záznam smaže.
-- **Pravidla** jsou v `tools/firebase_pravidla_multiplayer.json` (Firebase konzole → Realtime Database → Pravidla → vložit → Publikovat). Číst jde jen `hraci` a schránky `hlas/<id>`, zapisovat jen jednotlivé `hraci/<id>` s poli n (1–16 znaků), r, x, y, a, e (0–9), ek, s (do 24 znaků), v (= 1), t (= čas serveru) a zprávy `hlas/<id>/<klíč>` s poli f, k (offer / answer), d (do 20 000 znaků), t; cokoli jiného databáze odmítne. Proto se celé `hraci` smazat nedá, jen po jednom. **Při přidání nového pole (krok 2, 3) se musí upravit i pravidla**, jinak databáze odmítne celý zápis a hráči se přestanou vidět.
+- **Pravidla** jsou v `tools/firebase_pravidla_multiplayer.json` (Firebase konzole → Realtime Database → Pravidla → vložit → Publikovat). Číst jde jen `hraci` a schránky `hlas/<id>`, zapisovat jen jednotlivé `hraci/<id>` s poli n (1–16 znaků), r, x, y, a, e (0–9), ek, s (do 24 znaků), v (= 1), t (= čas serveru) m, qn, qd, zprávy `hlas/<id>/<klíč>` s poli f, k (offer / answer), d (do 20 000 znaků), t, výzvy `duely/<id>/<klíč>` a zápasy `hry/<id>/h|c`; cokoli jiného databáze odmítne. Proto se celé `hraci` smazat nedá, jen po jednom. **Při přidání nového pole (krok 2, 3) se musí upravit i pravidla**, jinak databáze odmítne celý zápis a hráči se přestanou vidět.
 - Firebase povoluje přístup odkudkoli (`Access-Control-Allow-Origin: *`), takže online jde i ze `jeden_soubor/hra_darek.html` otevřeného z disku.
 - Bez adresy (`VLOŽ_…`) se přepínač Online neukáže. Adresa jde dočasně přepsat v URL: `index.html?mpdb=http://127.0.0.1:8001`.
 

@@ -8,6 +8,7 @@ function update(dt) {
   updateMultiplayer(dt);   // online hráči (29_multiplayer.js)
   updateVoice();           // hlasový chat (34_hlas.js)
   takeOnlineTaps();        // tlačítko Online a jméno na úvodu
+  takeDuelTaps();          // online duely: výzvy a výběr soupeře (35_duely.js)
   takeQualityTaps();       // úvod: tlačítko Kvalita (30_kvalita.js)
   takeMenuButtonTaps();    // ve hře: tlačítko ☰ Hlavní menu (31_menu.js)
   takeVoiceTaps();         // ve hře: 🎤 (34_hlas.js)
@@ -82,6 +83,7 @@ function render() {
   drawSpawnPick();     // kde začít: venku / ve skříňkách (33_skiny.js)
   drawPauseMenu();     // Pozastaveno / Hlavní menu (31_menu.js)
   drawLeaderboard();   // okno žebříčku
+  drawDuelUi();        // online duely: výzva / výběr soupeře (35_duely.js)
 }
 
 // =====================================================================

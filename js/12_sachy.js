@@ -246,9 +246,61 @@ function chessNewGame(level) {
   c.result = null; c.msg = ''; c.overSel = 0; c.reward = 0;
   c.legal = chessLegal(c.pos);
 }
-function chessHumanTurn(c) { return c.level.id === 'two' || c.pos.turn === 'w'; }
+function chessHumanTurn(c) { return c.level.id === 'two' || c.pos.turn === (c.online ? c.online.color : 'w'); }
+const chessView = (c, i) => (c.flip ? 63 - i : i);   // černý online hráč vidí desku otočenou
+function chessMenuLevels() { return duelMenuOn() ? [...CHESS.LEVELS, DUEL.ROW] : CHESS.LEVELS; }
+
+// --- Online partie proti jinému hráči (35_duely.js): tahy se posílají jako „z-do[proměna]“ ---
+function chessOnlineStart(d) {
+  openChess();
+  chessNewGame({ id: 'online', name: `${d.oppName}${d.bet ? ` · sázka ${d.bet} Kč` : ''}`, reward: 0 });
+  const c = state.chess;
+  c.online = { color: d.host ? 'w' : 'b', moves: [], opp: d.oppName };
+  c.flip = !d.host;
+  c.cursor = d.host ? 52 : 12;
+}
+function chessOnlineTick(c) {
+  const p = duelPeer();
+  if (p && typeof p.m === 'string' && !chessHumanTurn(c)) {
+    const list = p.m ? p.m.split(' ') : [];
+    const mm = list.length === c.online.moves.length + 1 && /^(\d+)-(\d+)([QRBN]?)$/.exec(list[list.length - 1]);
+    if (mm) {
+      const m = c.legal.find((x) => x.from === +mm[1] && x.to === +mm[2] && (x.promo || '') === mm[3]);
+      if (m) chessApply(c, m);
+    }
+  }
+  if (c.phase !== 'play') return;
+  if (p && p.r) chessOnlineEnd(c, 'oppResign');
+  else if (duelPeerGone()) chessOnlineEnd(c, 'gone');
+}
+function chessOnlineEnd(c, how) {
+  c.phase = 'over'; c.overSel = 0; c.confirmQuit = false; c.promo = null;
+  const me = c.online.color, opp = c.online.opp;
+  let res = 'draw';
+  if (how === 'mate') res = c.pos.turn === me ? 'lose' : 'win';
+  else if (how === 'resign') { res = 'lose'; duelSend({ m: c.online.moves.join(' '), r: 1 }, true); }
+  else if (how === 'oppResign') res = 'win';
+  else if (how === 'gone') res = 'gone';
+  const r = duelEnd(res);
+  c.result = { how, winner: r.res === 'win' ? me : r.res === 'lose' ? (me === 'w' ? 'b' : 'w') : null };
+  c.reward = r.won;
+  const msgs = {
+    mate: r.res === 'win' ? 'Mat! Vyhrál/a jsi' : `Mat! Vyhrává ${opp}`,
+    resign: `Vzdal/a ses – vyhrává ${opp}`,
+    oppResign: `${opp} se vzdal/a – vyhráváš!`,
+    gone: r.res === 'void' ? `${opp} se nepřipojil/a` : `${opp} odešel/odešla – vyhráváš!`,
+    stalemate: 'Pat – remíza', fifty: 'Remíza – 50 tahů bez braní', repetition: 'Remíza – 3× stejná pozice', material: 'Remíza – nedá se dát mat',
+  };
+  c.msg = msgs[how];
+  c.msg2 = r.text;
+  playSound(r.res === 'win' ? CONFIG.SOUND_COMPLETE : r.res === 'lose' ? CONFIG.SOUND_MISS : [[440, 0, 0.1], [440, 0.15, 0.1]]);
+}
 
 function chessApply(c, m) {
+  if (c.online) {
+    c.online.moves.push(`${m.from}-${m.to}${m.promo || ''}`);
+    if (c.pos.turn === c.online.color) duelSend({ m: c.online.moves.join(' ') }, true);
+  }
   if (m.cap) c.captured[m.cap[0]].push(m.cap[1]);
   c.pos = chessMake(c.pos, m);
   c.last = { from: m.from, to: m.to };
@@ -268,6 +320,7 @@ function chessApply(c, m) {
 
 // Konec partie: how = 'mate' | 'resign' (vzdal se ten, kdo je na tahu) | remíza
 function chessFinish(c, how) {
+  if (c.online) { chessOnlineEnd(c, how); return; }
   c.phase = 'over';
   c.overSel = 0;
   c.confirmQuit = false;
@@ -299,6 +352,7 @@ function chessFinish(c, how) {
 
 function chessLeave() {
   const c = state.chess;
+  duelLeave();
   state.chess = null;
   setScreen('playing');
   input.events.length = 0;
@@ -333,7 +387,8 @@ function chessSquareAt(x, y) {
   return col >= 0 && col < 8 && row >= 0 && row < 8 ? row * 8 + col : -1;
 }
 function chessMenuRows() {
-  return [...CHESS.LEVELS, null].map((_, i) => ({ x: 210, y: 186 + i * 58, w: 380, h: 48 }));
+  const n = chessMenuLevels().length + 1, step = n > 5 ? 56 : 58;
+  return Array.from({ length: n }, (_, i) => ({ x: 210, y: (n > 5 ? 172 : 186) + i * step, w: 380, h: 48 }));
 }
 function chessOverButtons() { return [0, 1].map((i) => ({ x: 250, y: 318 + i * 60, w: 300, h: 48 })); }
 function chessConfirmButtons() { return [{ x: 222, y: 318, w: 170, h: 48 }, { x: 408, y: 318, w: 170, h: 48 }]; }
@@ -348,7 +403,8 @@ function updateChess(dt) {
   const has = (list, k) => KEYMAP[list].includes(k);
 
   if (c.phase === 'menu') {
-    const n = CHESS.LEVELS.length + 1;
+    const levels = chessMenuLevels(), n = levels.length + 1;
+    c.menuSel = Math.min(c.menuSel, n - 1);
     for (const k of keys) {
       if (has('up', k)) c.menuSel = (c.menuSel + n - 1) % n;
       if (has('down', k)) c.menuSel = (c.menuSel + 1) % n;
@@ -357,8 +413,9 @@ function updateChess(dt) {
     for (const ev of events) {
       const i = ev.type === 'action' ? c.menuSel : chessHit(chessMenuRows(), ev);
       if (i < 0) continue;
-      if (i >= CHESS.LEVELS.length) chessLeave();
-      else chessNewGame(CHESS.LEVELS[i]);
+      if (i >= levels.length) chessLeave();
+      else if (levels[i] === DUEL.ROW) duelPickOpen('chess');
+      else chessNewGame(levels[i]);
       return;
     }
     return;
@@ -371,13 +428,19 @@ function updateChess(dt) {
     }
     for (const ev of events) {
       const i = ev.type === 'action' ? c.overSel : chessHit(chessOverButtons(), ev);
-      if (i === 0) { c.phase = 'menu'; c.menuSel = Math.max(0, CHESS.LEVELS.indexOf(c.level)); return; }
+      if (i === 0) {
+        if (c.online) { duelLeave(); c.online = null; c.flip = false; c.msg2 = ''; c.menuSel = chessMenuLevels().indexOf(DUEL.ROW); }
+        else c.menuSel = Math.max(0, CHESS.LEVELS.indexOf(c.level));
+        c.phase = 'menu';
+        return;
+      }
       if (i === 1) { chessLeave(); return; }
     }
     return;
   }
 
   // --- partie ---
+  if (c.online) { chessOnlineTick(c); if (c.phase !== 'play') return; }
   if (c.promo) {   // výběr figurky při proměně pěšce
     for (const k of keys) {
       if (has('left', k)) c.promo.sel = (c.promo.sel + 3) % 4;
@@ -405,7 +468,8 @@ function updateChess(dt) {
   }
   for (const k of keys) {
     if (k === 'Escape') { c.confirmQuit = true; return; }
-    const d = has('left', k) ? [0, -1] : has('right', k) ? [0, 1] : has('up', k) ? [-1, 0] : has('down', k) ? [1, 0] : null;
+    let d = has('left', k) ? [0, -1] : has('right', k) ? [0, 1] : has('up', k) ? [-1, 0] : has('down', k) ? [1, 0] : null;
+    if (d && c.flip) d = [-d[0], -d[1]];
     if (d) {
       const r = Math.min(7, Math.max(0, (c.cursor >> 3) + d[0]));
       const col = Math.min(7, Math.max(0, (c.cursor & 7) + d[1]));
@@ -415,7 +479,8 @@ function updateChess(dt) {
   for (const ev of events) {
     if (ev.type === 'tap' && ev.x != null && pointInRect(ev.x, ev.y, chessResignButton(), 0)) { c.confirmQuit = true; return; }
   }
-  if (!chessHumanTurn(c)) {   // počítač
+  if (!chessHumanTurn(c)) {   // počítač (online: čeká se na tah soupeře)
+    if (c.online) return;
     c.aiT += dt;
     if (c.aiT >= CHESS.AI_DELAY) {
       const m = chessAiMove(c.pos, c.level);
@@ -427,7 +492,7 @@ function updateChess(dt) {
     if (ev.type === 'tap') {
       const sq = ev.x == null ? -1 : chessSquareAt(ev.x, ev.y);
       if (sq < 0) continue;
-      c.cursor = sq;
+      c.cursor = chessView(c, sq);
     }
     chessPick(c, c.cursor);
     if (c.phase !== 'play' || c.promo) return;
@@ -517,7 +582,7 @@ function drawChessBoard(c, pos) {
   const playing = c.phase === 'play';
   const checkK = playing && chessInCheck(pos) ? pos.b.indexOf(pos.turn + 'K') : -1;
   for (let i = 0; i < 64; i++) {
-    const sx = x + (i & 7) * sq, sy = y + (i >> 3) * sq;
+    const v = chessView(c, i), sx = x + (v & 7) * sq, sy = y + (v >> 3) * sq;
     const cell = { x: sx, y: sy, w: sq, h: sq };
     drawRect(cell, ((i >> 3) + (i & 7)) % 2 ? '#a9794f' : '#ecd9b4');
     if (c.last && (i === c.last.from || i === c.last.to)) drawRect(cell, 'rgba(255, 213, 74, 0.4)');
@@ -535,16 +600,17 @@ function drawChessBoard(c, pos) {
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
   for (let i = 0; i < 8; i++) {
-    ctx.fillText('abcdefgh'[i], x + i * sq + sq / 2, y + 8 * sq + 10);
-    ctx.fillText(String(8 - i), x - 10, y + i * sq + sq / 2);
+    ctx.fillText('abcdefgh'[c.flip ? 7 - i : i], x + i * sq + sq / 2, y + 8 * sq + 10);
+    ctx.fillText(String(c.flip ? i + 1 : 8 - i), x - 10, y + i * sq + sq / 2);
   }
   for (let i = 0; i < 64; i++) {
     const p = pos.b[i];
-    if (p) drawChessPiece(p[1], p[0], x + (i & 7) * sq + sq / 2, y + (i >> 3) * sq + sq / 2 - 2, sq);
+    const v = chessView(c, i);
+    if (p) drawChessPiece(p[1], p[0], x + (v & 7) * sq + sq / 2, y + (v >> 3) * sq + sq / 2 - 2, sq);
   }
   // kam může vybraná figurka: tečka, u braní kroužek
   for (const tq of c.targets || []) {
-    const cx = x + (tq & 7) * sq + sq / 2, cy = y + (tq >> 3) * sq + sq / 2;
+    const v = chessView(c, tq), cx = x + (v & 7) * sq + sq / 2, cy = y + (v >> 3) * sq + sq / 2;
     ctx.fillStyle = 'rgba(20, 60, 20, 0.45)';
     ctx.strokeStyle = 'rgba(20, 60, 20, 0.55)';
     ctx.lineWidth = 5;
@@ -556,7 +622,8 @@ function drawChessBoard(c, pos) {
   if (playing && !isTouchHint() && !c.promo && !c.confirmQuit && chessHumanTurn(c)) {
     ctx.strokeStyle = '#ffd54a';
     ctx.lineWidth = 3;
-    ctx.strokeRect(x + (c.cursor & 7) * sq + 2, y + (c.cursor >> 3) * sq + 2, sq - 4, sq - 4);
+    const v = chessView(c, c.cursor);
+    ctx.strokeRect(x + (v & 7) * sq + 2, y + (v >> 3) * sq + 2, sq - 4, sq - 4);
   }
 }
 
@@ -575,7 +642,8 @@ function drawChessPanel(c) {
     ctx.lineWidth = 2;
     ctx.beginPath(); ctx.arc(X + 24, 149, 11, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
     let who = white ? 'Na tahu: bílý' : 'Na tahu: černý';
-    if (c.level.id !== 'two') who = white ? 'Hraješ ty (bílý)' : 'Počítač přemýšlí…';
+    if (c.online) who = chessHumanTurn(c) ? `Táhneš ty (${white ? 'bílý' : 'černý'})` : `Táhne ${c.online.opp}…`;
+    else if (c.level.id !== 'two') who = white ? 'Hraješ ty (bílý)' : 'Počítač přemýšlí…';
     if (c.phase === 'over') who = 'Konec partie';
     ctx.font = 'bold 15px sans-serif';
     ctx.fillStyle = '#ffffff';
@@ -617,13 +685,14 @@ function renderChess() {
     drawChessBox(180, 110, 440, 420);
     drawOutlinedText('Šachy – vyber soupeře', 400, 150, 'bold 24px sans-serif', '#ffd54a', 'middle');
     const rows = chessMenuRows();
-    [...CHESS.LEVELS, null].forEach((l, i) => {
+    [...chessMenuLevels(), null].forEach((l, i) => {
       const label = l ? l.name + (l.reward ? `  ·  výhra +${l.reward} Kč` : '') : 'Odejít';
       drawChessButton(rows[i], label, i === c.menuSel, l ? '#3d5f3a' : '#5a4636');
     });
   } else if (c.phase === 'over') {
     drawChessBox(200, 200, 400, 250);
-    drawOutlinedText(c.msg, 400, 262, 'bold 22px sans-serif', c.reward || (c.result.winner && c.level.id === 'two') ? '#ffd54a' : '#ffffff', 'middle');
+    drawOutlinedText(c.msg, 400, c.msg2 ? 250 : 262, 'bold 22px sans-serif', c.reward || (c.result.winner && (c.level.id === 'two' || c.result.winner === (c.online && c.online.color))) ? '#ffd54a' : '#ffffff', 'middle');
+    if (c.msg2) drawOutlinedText(c.msg2, 400, 284, 'bold 17px sans-serif', '#ffd54a', 'middle');
     chessOverButtons().forEach((r, i) => drawChessButton(r, i === 0 ? 'Hrát znovu' : 'Odejít', i === c.overSel));
   } else if (c.promo) {
     drawChessBox(150, 200, 500, 190);
