@@ -34,7 +34,7 @@ const duel = {
 };
 const duelUrl = (sub) => `${MP.DB_URL.replace(/\/+$/, '')}/${sub}.json`;
 const duelMenuOn = () => mp.on && !mp.legacy && mp.status !== 'error';
-const duelOnline = () => !!duel.cur;
+const duelBusy = () => !!duel.cur && !duel.cur.over;   // dohraný zápas nevadí (odveta)
 
 // --- Zprávy (výzvy) ---
 function duelMsg(to, k, extra) {
@@ -65,12 +65,12 @@ function duelTakeMsg(key, m) {
   const name = cleanPlayerName(m.n) || '?';
   if (m.k === 'invite') {
     const bet = DUEL.BETS.includes(m.b) ? m.b : 0;
-    if (!DUEL.GAMES[m.g] || duel.cur || duel.invite || (duel.pick && duel.pick.status === 'wait')) { duelMsg(m.f, 'decline', { d: m.d, why: 'busy' }); return; }
+    if (!DUEL.GAMES[m.g] || duelBusy() || duel.invite || (duel.pick && duel.pick.status === 'wait')) { duelMsg(m.f, 'decline', { d: m.d, why: 'busy' }); return; }
     duel.invite = { f: m.f, n: name, g: m.g, b: bet, d: m.d, until: performance.now() + DUEL.INVITE_TIME };
     playSound([[660, 0, 0.08], [880, 0.1, 0.1], [990, 0.22, 0.12]]);
   } else if (m.k === 'accept') {
     const p = duel.pick;
-    if (!p || p.status !== 'wait' || p.d !== m.d || duel.cur) { duelMsg(m.f, 'cancel', { d: m.d }); return; }
+    if (!p || p.status !== 'wait' || p.d !== m.d || duelBusy()) { duelMsg(m.f, 'cancel', { d: m.d }); return; }
     duel.pick = null;
     duelStart({ game: p.game, host: true, opp: m.f, oppName: name, bet: p.betValue, id: m.d });
   } else if (m.k === 'decline') {
@@ -130,14 +130,15 @@ function duelInviteAnswer(yes) {
 }
 // Výzvu jde přijmout ve hře nebo v menu minihry, ne uprostřed jiné partie
 function duelInviteShown() {
-  if (!duel.invite || duel.cur || duel.pick) return false;
+  if (!duel.invite || duelBusy() || duel.pick) return false;
   if (state.screen === 'playing') return !state.pauseMenu;
   const g = { chess: state.chess, foosball: state.foos, pingpong: state.pp }[state.screen];
-  return !!g && g.phase === 'menu';
+  return !!g && (g.phase === 'menu' || g.phase === 'over');
 }
 
 // --- Zápas ---
 function duelStart(o) {
+  duelLeave();   // předchozí dohraný zápas
   state.money -= o.bet;
   saveProgress();
   const d = duel.cur = { ...o, mine: {}, seq: 0, peer: null, peerSeq: -1, peerAt: 0, seen: false, over: false,
