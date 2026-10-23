@@ -50,6 +50,7 @@ const mp = {
   offset: null,      // čas serveru − místní čas (z vlastního záznamu, který se vrátí proudem)
   status: '',        // '' | 'connecting' | 'ok' | 'error'
   sendT: 0, beatT: 0, purgeT: 5, last: '', sending: false,
+  legacy: false,     // databáze má stará pravidla bez m/qn/qd (tools/firebase_pravidla_multiplayer.json)
   emote: null,       // můj smajlík { i, k, t } (t = kdy, herní čas)
   emoteSeq: 0,       // pořadí smajlíku – ostatní poznají nový, i když je stejný
 };
@@ -126,7 +127,7 @@ function mpSync() {
     const o = mp.others[id] || { dx: v.x, dy: v.y, phase: 0, blend: 0, color: mpColor(id) };
     if (o.r !== v.r) { o.dx = v.x; o.dy = v.y; }   // přešel do jiné místnosti: neklouzat přes celou mapu
     Object.assign(o, { id, v: v.v === 1, n: cleanPlayerName(v.n) || '?', r: v.r, x: v.x, y: v.y, a: typeof v.a === 'string' ? v.a : '', s: typeof v.s === 'string' ? v.s : '', t: v.t,
-      qn: Number.isInteger(v.qn) ? v.qn : 0, qd: typeof v.qd === 'string' && v.qd ? v.qd.split(',') : [] });
+      m: Number.isFinite(v.m) ? v.m : 0, qn: Number.isInteger(v.qn) ? v.qn : 0, qd: typeof v.qd === 'string' && v.qd ? v.qd.split(',') : [] });
     if (Number.isInteger(v.e) && MP.EMOTES[v.e] && v.ek !== o.ek) { o.ek = v.ek; o.emote = MP.EMOTES[v.e]; o.emoteT = state.time; }   // nový smajlík
     next[id] = o;
   }
@@ -166,6 +167,8 @@ function mpMyRecord() {
   if (mp.emote && state.time - mp.emote.t < MP.EMOTE_TIME) { rec.e = mp.emote.i; rec.ek = mp.emote.k; }
   if (mySkin !== SKINS[0]) rec.s = mySkin.id;   // skin z Lockeru (33_skiny.js)
   if (voice.on) rec.v = 1;   // má zapnutý hlas (34_hlas.js)
+  if (mp.legacy) return rec;
+  rec.m = state.money;       // kolik může vsadit v online duelu (35_duely.js)
   if (!state.mode) {   // postup v úkolech hlavní hry – vidí ho ostatní (jmenovka, katalog)
     const quests = activeQuests();
     rec.qn = quests.length;
@@ -177,7 +180,11 @@ function mpMyRecord() {
 function mpSend(rec) {
   mp.sending = true;
   fetch(mpUrl(mp.id), { method: 'PUT', body: JSON.stringify({ ...rec, t: { '.sv': 'timestamp' } }) })
-    .then((r) => { if (!r.ok) throw new Error(r.status); })
+    .then((r) => {
+      // Databáze se starými pravidly odmítne nová pole (peníze, úkoly) – posílat bez nich
+      if (r.status === 401 && !mp.legacy && (rec.m !== undefined || rec.qn !== undefined)) { mp.legacy = true; mp.last = ''; return; }
+      if (!r.ok) throw new Error(r.status);
+    })
     .catch(() => { mp.status = 'error'; mp.last = ''; })
     .finally(() => { mp.sending = false; });
 }
